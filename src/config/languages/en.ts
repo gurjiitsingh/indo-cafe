@@ -1,12 +1,12 @@
 export const TEXT = {
   home_page_offer: "", // fallback for DB-driven value
   offer_instruction: "", // fallback for DB-driven value
-  delivery_note: "Delivery is also available.",
+  delivery_note: "",
   home_page_disclaimer: "Food may differ from image.",
   logo_alt: "Logo",
-  brand: "Masala",
-  tag_line: "Taste of India",
-  brand_name: "Masala Taste of India",
+  brand: "Indozest",
+  tag_line: "fusioncafe",
+  brand_name: "Best Taste",
 
   menu_list: [
     { name: "Home", link: "/" },
