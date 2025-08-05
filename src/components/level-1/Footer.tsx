@@ -12,7 +12,7 @@ export default function Footer() {
           <div className="flex items-center gap-1 w-full h-fit footer-border p-1 mx-1 rounded-2xl footer-box-bg">
             <div className="flex items-center justify-start rounded-full">
               <Link href="/">
-                <img className="h-12 md:h-12" src="/logo.webp" alt={TEXT.logo_alt} />
+                <img className="h-12 md:h-12" src="/logo.png" alt={TEXT.logo_alt} />
               </Link>
             </div>
             <div className="flex items-center h-fit">
