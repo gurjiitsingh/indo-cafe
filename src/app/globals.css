@@ -195,7 +195,7 @@ button:disabled {
 
 /* === Layout Colors === */
 .layout-bg {
-  @apply bg-[#d4eebe];
+  @apply bg-[#ece3da];
 }
 
 /* === Toast Styles === */
@@ -276,7 +276,7 @@ button:disabled {
 
 /* Footer background colors */
 .footer-bg-primary {
-  @apply bg-[#FADB5E]; /* Original: #FADB5E */
+  @apply bg-[#7a6e65]; /* Original: #FADB5E */
 }
 
 .footer-bg-bottom {
@@ -285,7 +285,7 @@ button:disabled {
 
 /* Footer card background and border */
 .footer-box-bg {
-  @apply bg-amber-200; /* Original: Tailwind amber-200 */
+  @apply bg-slate-200; /* Original: Tailwind amber-200 */
 }
 
 .footer-border {

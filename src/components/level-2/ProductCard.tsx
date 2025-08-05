@@ -101,7 +101,7 @@ priceDiscounted = formatCurrencyNumber(product.discountPrice,  (settings.currenc
           </button>
 
           {!product.flavors && (
-            <div className="flex text-slate-500 items-center bg-[#FADB5E] justify-between pt-1 pl-2 pr-1  rounded-3xl">
+            <div className="flex text-slate-50 items-center bg-[#d0b6a5] justify-between pt-1 pl-2 pr-1  rounded-3xl">
               <div>Pack</div>
               {/* common code start */}
               {product.discountPrice !== undefined &&
