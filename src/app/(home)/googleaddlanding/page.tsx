@@ -30,7 +30,7 @@ export default function GoogleAddPage() {
     <div className="relative container mx-auto py-5 p-1">
       <div className="min-h-[80vh] flex flex-col items-center justify-center bg-gradient-to-br from-yellow-50 to-green-100 px-4 text-center rounded-xl shadow-sm">
         <h1 className="text-4xl font-extrabold text-green-800 mb-3 drop-shadow">
-          🍽️ Willkommen bei Masala!
+          🍽️ Willkommen bei indozestfusioncafe!
         </h1>
         <p className="text-lg text-gray-700 mb-8 max-w-xl">
           Als Google-Besucher bekommst du exklusive Rabatte bis zu <span className="text-green-700 font-semibold">15€</span> auf deine Bestellung!

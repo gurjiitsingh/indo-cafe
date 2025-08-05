@@ -16,9 +16,9 @@ export default function PrivacyPage() {
       <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
 
       <p className="mb-4">
-        At <strong>Masala Taste of India</strong> (
-        <a href="https://www.masala-gf.de" className="text-blue-600 underline">
-          www.masala-gf.de
+        At <strong>indozestfusioncafe</strong> (
+        <a href="https://www.indozestfusioncafe.com" className="text-blue-600 underline">
+          www.indozestfusioncafe.com
         </a>
         ), we take your privacy seriously. This page explains how we collect, use, and protect your personal data.
       </p>
@@ -65,9 +65,9 @@ export default function PrivacyPage() {
       </p>
       <p className="mb-4">
         📧{' '}
-        <a href="mailto:info@masala-gf.de" className="text-blue-600 underline">
-          info@masala-gf.de
-        </a>
+        {/* <a href="mailto:info@indozestfusioncafe.com" className="text-blue-600 underline">
+          info@indozestfusioncafe.com
+        </a> */}
       </p>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">6. Contact</h2>
@@ -75,9 +75,9 @@ export default function PrivacyPage() {
         If you have any questions regarding this privacy policy, feel free to reach out to us:
         <br />
         📧{' '}
-        <a href="mailto:info@masala-gf.de" className="text-blue-600 underline">
-          info@masala-gf.de
-        </a>
+        {/* <a href="mailto:info@indozestfusioncafe.com" className="text-blue-600 underline">
+          info@indozestfusioncafe.com
+        </a> */}
       </p>
 
       <p className="text-sm text-gray-500 mt-10">Last updated: {new Date().toLocaleDateString('en-GB')}</p>

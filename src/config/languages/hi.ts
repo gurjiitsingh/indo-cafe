@@ -52,7 +52,7 @@ export const TEXT = {
     copyright: {
       prefix: "कॉपीराइट ©",
       suffix: "सभी अधिकार सुरक्षित",
-      company: "मसाला भारत का स्वाद",
+      company: "Indozest fusion cafe",
     },
   },
 
@@ -109,7 +109,7 @@ order_complete_heading: "आपका ऑर्डर पूरा हो गय
 
 
 export const SEO = {
-  title: "Masala – Indian Restaurant in Gifhorn, Lower Saxony",
+  title: "indozestfusioncafe – Indian Restaurant in Albany Highway, Beckenham, Lower Saxony",
   description:
-    "Authentic Indian food at Masala Gifhorn. Order online for delivery or visit us in Lower Saxony.",
+    "Authentic Indian food at indozestfusioncafe Albany Highway, Beckenham. Order online for delivery or visit us in Lower Saxony.",
 };

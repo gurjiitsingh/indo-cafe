@@ -12,7 +12,7 @@ if (!process.env.CLOUDINARY_API_SECRET) {
   throw new Error('CLOUDINARY_API_SECRET is not set');
 }
 
-const folder = process.env.CLOUDINARY_FOLDER || 'masala-food';
+const folder = process.env.CLOUDINARY_FOLDER || 'indozestfusioncafe-food';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

@@ -29,7 +29,7 @@ export async function POST(req:NextRequest) {
     
        // Email to customer
     const customerMail = await client.messages.create(DOMAIN, {
-      from: 'info@masala-gf.shop',
+      from: 'info@indozestfusioncafe-gf.shop',
       to,
       subject,
       html: emailBody,
@@ -37,7 +37,7 @@ export async function POST(req:NextRequest) {
 
   //   Email to business/info
      const internalMail = await client.messages.create(DOMAIN, {
-      from: 'info@masala-gf.shop',
+      from: 'info@indozestfusioncafe-gf.shop',
       to: ADMIN_EMAI_ORDER_CONFIRM,
       subject: `New Order Received - ${subject}`,
       html: emailBody,

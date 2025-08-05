@@ -4,9 +4,9 @@ export const TEXT = {
   delivery_note: "La livraison est également disponible.",
   home_page_disclaimer: "Le plat peut différer de l’image.",
   logo_alt: "Logo",
-  brand: "Masala",
+  brand: "indozestfusioncafe",
   tag_line: "Goût de l'Inde",
-  brand_name: "Masala Goût de l'Inde",
+  brand_name: "indozestfusioncafe Goût de l'Inde",
 
   menu_list: [
     { name: "Accueil", link: "/" },
@@ -52,7 +52,7 @@ export const TEXT = {
     copyright: {
       prefix: "Copyright ©",
       suffix: "Tous droits réservés par",
-      company: "Masala Goût de l'Inde",
+      company: "Indozest fusion cafe",
     },
   },
 
@@ -109,7 +109,7 @@ export const TEXT = {
 
 
 export const SEO = {
-  title: "Masala – Indian Restaurant in Gifhorn, Lower Saxony",
+  title: "indozestfusioncafe – Indian Restaurant in Albany Highway, Beckenham, Lower Saxony",
   description:
-    "Authentic Indian food at Masala Gifhorn. Order online for delivery or visit us in Lower Saxony.",
+    "Authentic Indian food at indozestfusioncafe Albany Highway, Beckenham. Order online for delivery or visit us in Lower Saxony.",
 };

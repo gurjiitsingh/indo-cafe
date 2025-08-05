@@ -52,7 +52,7 @@ export const TEXT = {
     copyright: {
       prefix: "Copyright ©",
       suffix: "All Rights Reserved by",
-      company: "Masala Taste of India",
+      company: "Indozest fusion cafe",
     },
   },
 
@@ -168,7 +168,7 @@ aria_delete_user: "Benutzer löschen",
 };
 
 export const SEO = {
-  title: "Masala – Indisches Restaurant in Gifhorn, Niedersachsen",
+  title: "indozestfusioncafe – Indisches Restaurant in Albany Highway, Beckenham, Niedersachsen",
   description:
-    "Genießen Sie authentische indische Küche bei Masala in Gifhorn. Jetzt online bestellen oder vor Ort besuchen.",
+    "Genießen Sie authentische indische Küche bei indozestfusioncafe in Albany Highway, Beckenham. Jetzt online bestellen oder vor Ort besuchen.",
 };
