@@ -69,6 +69,13 @@ export const TEXT = {
   order_button_suffix: "commande",
   placing_order_text: "Commande en cours...",
 
+
+  deliveryCost: {
+  title: "Frais de livraison",
+  addressRequired: "Veuillez entrer l'adresse complète et le code postal pour estimer les frais de livraison",
+},
+
+
   address_section_title: "Adresse",
   email_label: "Email",
   mobile_label: "Mobile",

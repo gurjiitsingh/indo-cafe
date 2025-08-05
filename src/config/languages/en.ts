@@ -73,6 +73,11 @@ export const TEXT = {
   order_button_suffix: "Order",
   placing_order_text: "Placing Order...",
 
+    deliveryCost: {
+  title: "Delivery Cost",
+  addressRequired: "Please enter full address and postal code to estimate delivery cost",
+},
+
   // Text from address form component
   address_section_title: "Address",
   email_label: "Email",

@@ -72,6 +72,12 @@ export const TEXT = {
   order_button_suffix: "Order",
   placing_order_text: "Placing Order...",
 
+
+    deliveryCost: {
+  title: "Lieferpauschale", // German
+  addressRequired: "Bitte geben Sie die vollständige Adresse und Postleitzahl ein, um die Versandkosten zu schätzen",
+},
+
   // Address form
   address_section_title: "Adresse",
   email_label: "Email",
