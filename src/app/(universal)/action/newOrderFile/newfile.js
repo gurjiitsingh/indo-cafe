@@ -132,7 +132,7 @@ export async function createNewOrderFile(
     myOrder.ServerData.IpAddress = "127.0.0.1";
     myOrder.ServerData.Agent = "Mozilla/5.0";
 
-    myOrder.StoreData.StoreName = "indozestfusioncafe app";
+    myOrder.StoreData.StoreName = "Masala app";
 
     myOrder.Customer.DeliveryAddress.LastName = customAddress.lastName;
     myOrder.Customer.DeliveryAddress.FirstName = customAddress.firstName;

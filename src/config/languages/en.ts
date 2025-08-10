@@ -46,6 +46,26 @@ export const TEXT = {
     },
   },
 
+   //admin sidebar
+  sidebar: {
+  home: "Home",
+  orders: "Orders",
+  orders_realtime: "Orders Realtime",
+  sale: "Sale",
+  reservations: "Reservations",
+  categories: "Categories",
+  pickup_discount: "Pickup Discount",
+  products: "Products",
+  variants: "Variants",
+  coupon: "Coupon",
+  delivery: "Delivery",
+  users: "Users",
+  setting: "Setting",
+  data_backup: "Data Backup",
+  logout: "Logout",
+},
+
+
   footer_bottom: {
     poweredBy: "Powered by",
     poweredByUrl: "http://www.gstadeveloper.com",
