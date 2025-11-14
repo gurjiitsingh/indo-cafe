@@ -12,17 +12,17 @@ export default function ContactInfo() {
         <div>
           <FaMapMarkedAlt className="w-8 h-8 mx-auto mb-4 text-[#2b2e4a]" />
           <h3 className="uppercase text-sm tracking-wider font-semibold mb-2">Location</h3>
-          
-          <p className="text-sm">82-84 Standard Avenue.</p>
-            <p className="text-sm">Coventry ,</p>
-            <p className="text-sm">United Kingdom</p>
+           
+          <p className="text-sm">1490 Albany Hwy,</p>
+            <p className="text-sm">Beckenham WA 6107 ,</p>
+            <p className="text-sm">Australia</p>
         </div>
 
         {/* Telefon */}
         <div>
           <FaPhoneAlt className="w-8 h-8 mx-auto mb-4 text-[#2b2e4a]" />
           <h3 className="uppercase text-sm tracking-wider font-semibold mb-2">Phone</h3>
-          <p className="text-sm"> +44 7777 369496</p>
+          <p className="text-sm"> +61 469 069 778</p>
         </div>
 
         {/* E-Mail */}
@@ -30,7 +30,7 @@ export default function ContactInfo() {
           <FaEnvelope className="w-8 h-8 mx-auto mb-4 text-[#2b2e4a]" />
           <h3 className="uppercase text-sm tracking-wider font-semibold mb-2">E-Mail</h3>
           <a href="mailto:info@lakeside-ellerau.de" className="text-sm hover:underline">
-            info@anjanabhog.com
+            
           </a>
         </div>
 
