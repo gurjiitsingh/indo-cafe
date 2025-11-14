@@ -14,8 +14,6 @@ import HeroSectionCustom from "@/custom/cus-components/HeroSectionCustom";
 import BuffetCard from "@/custom/cus-components/BuffetCard";
 import LunchDiscountCard from "@/custom/cus-components/LunchDiscountCard";
 import TableReservationCard from "@/custom/cus-components/TableReservationCard";
-import FoodItemModalEn from "@/custom/cus-components/FoodItemModal";
-import FoodItemCardDe from "@/custom/cus-components/FoodItemCardDe";
 
 
 // import MenuPreview from "@/components/MenuPreview";
@@ -33,8 +31,8 @@ export default function Page() {
       {/* <FlavorLine /> */}
       {/* <HeroSection /> */}
       <HeroSectionCustom />
-      <FoodItemModalEn />
-      <FoodItemCardDe />
+     
+     
        {/* <DiscountSectionSingle /> */}
       {/* <DiscountSection /> */}
       {/* <WelcomeBanner /> */}
