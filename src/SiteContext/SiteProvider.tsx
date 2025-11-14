@@ -37,7 +37,7 @@ export const SiteProvider: React.FC<Props> = ({
     useState(false);
   const [deliveryType, setDeliveryType] = useState<string>("pickup");
   const [couponDisc, setCouponDiscU] = useState<couponType | undefined>();
-  const [deliveryDis, setdeliveryDisU] = useState<deliveryType | undefined>();
+  const [deliveryDis, setdeliveryDisU] = useState<deliveryType | null>(null);
   const [showProductDetailM, setShowProductDetailML] = useState<boolean>(false);
   const [baseProductId, setBaseProductIdL] = useState<string>("");
   const [adminSideBarToggle, setAdminSideBarToggleL] = useState<boolean>(false);
@@ -54,21 +54,60 @@ export const SiteProvider: React.FC<Props> = ({
   // useEffect(() => {
   //   getAllSettings().then(setSettings).catch(console.error);
   // }, []);
- useEffect(() => {
+//  useEffect(() => {
+//   getAllSettings()
+//     .then((fetched) => {
+//       setSettings({
+//         // currency: fetched.currency || process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'EUR',
+//         // locale: fetched.locale || process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'de-DE',
+//         // ...fetched, // place this last so fetched values override defaults if present
+//           currency:  process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'GBP',
+//         locale:  process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'en-GB',
+       
+//       });
+//     })
+//     .catch((err) => {
+//       console.error("Error fetching settings:", err);
+//       // fallback to .env if Firestore fetch fails
+//       setSettings({
+//         currency: process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'GBP',
+//         locale: process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'en-GB',
+//       });
+//     });
+// }, []);
+
+useEffect(() => {
   getAllSettings()
     .then((fetched) => {
-      setSettings({
-        currency: fetched.currency || process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'EUR',
-        locale: fetched.locale || process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'de-DE',
-        ...fetched, // place this last so fetched values override defaults if present
-      });
+
+      // ✅ Start with everything Firestore provides
+      const merged: SettingsDataType = { ...fetched };
+
+      // ✅ Apply .env fallback ONLY if Firestore key is missing
+
+      if (merged.currency == null) {
+        merged.currency = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ?? null;
+      }
+
+      if (merged.locale == null) {
+        merged.locale = process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? null;
+      }
+
+      if (merged.display_category == null) {
+        merged.display_category = process.env.NEXT_PUBLIC_DEFAULT_DISPLAY_CATEGORY ?? null;
+      }
+
+      // ✅ Done — everything else stays exactly as Firestore sent
+      setSettings(merged);
     })
     .catch((err) => {
       console.error("Error fetching settings:", err);
-      // fallback to .env if Firestore fetch fails
+
+      // ✅ Firestore failed → ONLY .env values (NO hardcoded defaults)
       setSettings({
-        currency: process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'EUR',
-        locale: process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'de-DE',
+        currency: process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ?? null,
+        locale: process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? null,
+        display_category: process.env.NEXT_PUBLIC_DEFAULT_DISPLAY_CATEGORY ?? null,
       });
     });
 }, []);
@@ -117,7 +156,7 @@ export const SiteProvider: React.FC<Props> = ({
   function setCouponDisc(e: couponType | undefined) {
     setCouponDiscU(e);
   }
-  function setdeliveryDis(e: deliveryType | undefined) {
+  function setdeliveryDis(e: deliveryType | null) {
     setdeliveryDisU(e);
   }
   // deliveryDis:{},
@@ -172,7 +211,7 @@ export const SiteProvider: React.FC<Props> = ({
       value={{
         allProduct,
         setAllProduct,
-        //     handleSearchForm,
+        // handleSearchForm,
         // setHandleSearchForm,
         productToSearchQuery,
         setProductToSearchQuery,

@@ -4,7 +4,8 @@ import { categorySchema, editCategorySchema } from "@/lib/types/categoryType";
 import { deleteImage, upload } from "@/lib/cloudinary";
 import { categoryType } from "@/lib/types/categoryType";
 import { adminDb } from "@/lib/firebaseAdmin";
-import z from "zod";
+import { revalidateTag } from "next/cache";
+
 
 // ✅ Removed all incorrect Firestore imports from firebase-admin
 // You already use the correct admin SDK syntax
@@ -30,11 +31,12 @@ export async function fetchCategories(): Promise<categoryType[]> {
 }
 
 
-export async function deleteCategory(id: string, oldImgageUrl: string) {
+
+export async function deleteCategory(id: string, oldImageUrl: string) {
   const docRef = adminDb.collection("category").doc(id);
   await docRef.delete();
 
-  const imageUrlArray = oldImgageUrl.split("/");
+  const imageUrlArray = oldImageUrl.split("/");
   const imageName =
     imageUrlArray[imageUrlArray.length - 2] +
     "/" +
@@ -43,6 +45,7 @@ export async function deleteCategory(id: string, oldImgageUrl: string) {
 
   try {
     const deleteResult = await deleteImage(image_public_id);
+     revalidateTag("categories");
     console.log("image delete data", deleteResult);
   } catch (error) {
     console.log(error);
@@ -54,12 +57,15 @@ export async function deleteCategory(id: string, oldImgageUrl: string) {
   };
 }
 
+
+
 export async function addNewCategory(formData: FormData) {
   const name = formData.get("name");
   const desc = formData.get("desc");
   const sortOrder = formData.get("sortOrder");
   const image = formData.get("image");
   const isFeatured = formData.get("isFeatured");
+
   const receivedData = { name, desc, sortOrder, image, isFeatured };
 
   const result = categorySchema.safeParse(receivedData);
@@ -88,6 +94,10 @@ export async function addNewCategory(formData: FormData) {
   try {
     const docRef = await adminDb.collection("category").add(data);
     console.log("Document written with ID: ", docRef.id);
+
+    // ✅ Instantly clear "categories" cached data
+    revalidateTag("categories");
+
     return { message: { success: "Category Created" } };
   } catch (e) {
     console.error("Error adding document: ", e);
@@ -95,18 +105,20 @@ export async function addNewCategory(formData: FormData) {
   }
 }
 
+
+
 export async function editCategory(formData: FormData) {
   const id = formData.get("id") as string;
   const image = formData.get("image");
   const name = formData.get("name");
   const desc = formData.get("desc");
-  const oldImgageUrl = formData.get("oldImgageUrl") as string;
+  const oldImageUrl = formData.get("oldImageUrl") as string;
   const isFeatured = formData.get("isFeatured");
   const sortOrder = formData.get("sortOrder");
 
   const receivedData = {
     id,
-    oldImgageUrl,
+    oldImageUrl,
     name,
     desc,
     sortOrder,
@@ -124,27 +136,71 @@ export async function editCategory(formData: FormData) {
   }
 
   let imageUrl;
-  if (image === "undefined" || image === null) {
-    imageUrl = oldImgageUrl;
-  } else {
+  // if (image === "undefined" || image === null) {
+  //   imageUrl = oldImageUrl;
+  // } else {
+  //   try {
+  //     imageUrl = (await upload(image)) as string;
+  //   } catch (error) {
+  //     console.log(error);
+  //     return { errors: "Image cannot be uploaded" };
+  //   }
+  // }
+
+
+ if (image && image !== "undefined") {
     try {
-      imageUrl = (await upload(image)) as string;
+      // ✅ Upload new image
+      imageUrl = await upload(image);
+
+      // ✅ Delete old Cloudinary image (skip if default image)
+      if (oldImageUrl && !oldImageUrl.includes("/com.jpg")) {
+        const oldParts = oldImageUrl.split("/");
+        const publicId = oldParts.slice(-2).join("/").split(".")[0];
+        // ex: anjana-bhog/xyz123
+console.log("delete pic id----------------",publicId)
+        try {
+          await deleteImage(publicId);
+          console.log("✅ Old Cloudinary image deleted:", publicId);
+        } catch (err) {
+          console.error("❌ Failed to delete old image:", err);
+        }
+      }
     } catch (error) {
-      console.log(error);
-      return { errors: "Image cannot be uploaded" };
+      console.error("Image upload failed:", error);
+      return { errors: "Image could not be uploaded" };
     }
+  } else {
+    // ✅ Keep old image if no new image uploaded
+   // imageUrl = existingProduct?.image || oldImageUrl;
+     imageUrl = oldImageUrl;
   }
 
-  const categoryUpdateData = { name, desc, sortOrder, image: imageUrl, isFeatured };
+
+
+
+
+  const categoryUpdateData = {
+    name,
+    desc,
+    sortOrder,
+    image: imageUrl,
+    isFeatured,
+  };
 
   try {
     await adminDb.collection("category").doc(id).set(categoryUpdateData);
+
+    // ✅ REVALIDATE TAG SO /api/categories UPDATES IMMEDIATELY
+    revalidateTag("categories");
+
     return { message: { success: "Category updated" } };
   } catch (error) {
     console.log("error", error);
     return { errors: "Cannot update" };
   }
 }
+
 
 export async function fetchCategoryById(id: string): Promise<categoryType> {
   const docSnap = await adminDb.collection("category").doc(id).get();

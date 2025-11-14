@@ -1,93 +1,186 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-
-import { fetchAddOnProducts } from "@/app/(universal)/action/productsaddon/dbOperation";
+import { useEffect, useState, useMemo } from "react";
+import { UseSiteContext } from "@/SiteContext/SiteContext";
+import dynamic from "next/dynamic";
 import { ProductType } from "@/lib/types/productType";
 import { addOnType } from "@/lib/types/addOnType";
+//import ProdcutCardHorizontical19 from "../custom/cus-componets/ProductCard-h19"
 
-import { UseSiteContext } from "@/SiteContext/SiteContext";
-import ProductCard from "../level-2/ProductCard";
-import { fetchProducts } from "@/app/(universal)/action/products/dbOperation";
-
+// export type ProductType = {
+//   id: string;
+//   name: string;
+//   price: number;
+//   image?: string;
+//   categoryId: string;
+//   sortOrder?: number;
+//   [key: string]: any;
+// };
 export default function Products() {
+ 
   const { productCategoryIdG, settings, setAllProduct, productToSearchQuery } =
     UseSiteContext();
 
   const [products, setProducts] = useState<ProductType[]>([]);
-  const [allProducts, setAllProductsC] = useState<ProductType[]>([]);
+  const [allProducts, setAllProductsLocal] = useState<ProductType[]>([]);
   const [addOns, setAddOns] = useState<addOnType[]>([]);
   const [categoryId, setCategoryId] = useState("");
 
-  // Set initial category
+  const cardType = process.env.NEXT_PUBLIC_PRODUCT_CARD_TYPE;
+
+  // ✅ DYNAMIC IMPORT — SAFE, NO RERENDER LOOP
+  const Card = useMemo(() => {
+    switch (cardType) {
+      case "1":
+        return dynamic(() => import("../level-2/ProductCard-h1"));
+      case "13":
+        return dynamic(() => import("../level-2/ProductCard-h1_3"));
+      case "11":
+        return dynamic(() => import("../level-2/ProductCard-h11"));
+      case "12":
+        return dynamic(() => import("@/custom/cus-components/ProductCard-custom"));
+      case "19":
+        return dynamic(() => import("../level-2/ProductCard-h12"));
+      case "2":
+        return dynamic(() => import("../level-2/ProductCard-v2"));
+      case "3":
+        return dynamic(() => import("../level-2/ProductCard-v3"));
+      case "4":
+        return dynamic(() => import("../level-2/ProductCard-v4"));
+      case "5":
+        return dynamic(() => import("../level-2/ProductCard-v5"));
+      case "6":
+        return dynamic(() => import("../level-2/ProductCard-h6"));
+      case "7":
+        return dynamic(() => import("../level-2/ProductCard-v7"));
+      default:
+        return dynamic(() => import("../level-2/ProductCard-h1"));
+    }
+  }, [cardType]);
+
+  // ✅ Set initial category (runs only when settings OR global id changes)
   useEffect(() => {
-    const fallbackCategory = settings.display_category as string;
-    setCategoryId(productCategoryIdG || fallbackCategory || "");
+    const fallback = settings.display_category as string;
+    setCategoryId(productCategoryIdG || fallback || "");
   }, [settings, productCategoryIdG]);
 
-  // Fetch and filter products
+  // ✅ Fetch ONCE (no remount loop now)
   useEffect(() => {
-    async function fetchData() {
+    let isMounted = true;
+
+    async function load() {
       try {
-        const [fetchedAddOns, fetchedProducts] = await Promise.all([
-          fetchAddOnProducts(),
-          fetchProducts(),
-        ]);
+        const res = await fetch("/api/products");
+      //  const data = await res.json();
+const data: ProductType[] = await res.json(); // ✅ define type here
+        console.log("Fetched products ✅");
 
-        // ✅ Filter for only published products
-        const publishedProducts = fetchedProducts.filter(
-          (p) => p.status === "published"
+        const published = data.filter((p: ProductType) => p.status === "published");
+
+        const sorted = published.sort(
+          (a: ProductType, b: ProductType) =>
+            (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
         );
 
-        // ✅ Sort
-        const sortedProducts = publishedProducts.sort(
-          (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
+        if (!isMounted) return;
+
+        setAllProductsLocal(sorted);
+        setAllProduct(sorted); // ✅ context update (won’t remount now)
+       // setAddOns(data);
+
+        setProducts(
+          categoryId
+            ? sorted.filter((p) => p.categoryId === categoryId)
+            : sorted
         );
-
-        setAddOns(fetchedAddOns);
-        setAllProductsC(sortedProducts);
-        setAllProduct(sortedProducts);
-
-        if (categoryId) {
-          const filtered = sortedProducts.filter(
-            (p) => p.categoryId === categoryId
-          );
-          setProducts(filtered);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+      } catch (err) {
+        console.error("Error loading products:", err);
       }
     }
 
-    fetchData();
-  }, [categoryId]);
+    load();
 
-  // Update when category or allProducts change
-  useEffect(() => {
-    if (!categoryId || allProducts.length === 0) return;
-    const filtered = allProducts.filter((p) => p.categoryId === categoryId);
-    setProducts(filtered);
-  }, [allProducts, categoryId]);
+    return () => {
+      isMounted = false;
+    };
+  }, []); // ✅ runs ONCE ONLY
 
-  // Search filter
+  // ✅ Category filter
   useEffect(() => {
-    if (productToSearchQuery === "") return;
-    const filtered = allProducts.filter((p) =>
-      p.name.toLowerCase().includes(productToSearchQuery.toLowerCase())
+    if (!categoryId) {
+      setProducts(allProducts);
+      return;
+    }
+    setProducts(allProducts.filter((p) => p.categoryId === categoryId));
+  }, [categoryId, allProducts]);
+
+  // ✅ Search filter
+  useEffect(() => {
+    if (!productToSearchQuery) {
+      setProducts(allProducts);
+      return;
+    }
+
+    setProducts(
+      allProducts.filter((p) =>
+        p.name.toLowerCase().includes(productToSearchQuery.toLowerCase())
+      )
     );
-    setProducts(filtered);
   }, [productToSearchQuery]);
 
+  // ✅ Layout logic (unchanged)
+  let containerClass = "";
+  switch (cardType) {
+    case "1":
+      containerClass =
+        "flex flex-col md:flex-row md:flex-wrap gap-3 md:gap-5";
+      break;
+    case "11":
+      containerClass =
+        "flex flex-col md:flex-row md:flex-wrap gap-0 md:gap-0";
+      break;
+       case "12":
+      containerClass =
+        "flex flex-col md:flex-row md:flex-wrap gap-3 md:gap-5";
+      break;
+    case "2":
+    case "3":
+      containerClass =
+        "flex flex-col md:flex-row md:flex-wrap gap-3 md:gap-5 justify-center";
+      break;
+    case "4":
+      containerClass =
+        "grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3";
+      break;
+    case "5":
+      containerClass =
+        "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3";
+      break;
+    case "6":
+      containerClass =
+        "flex flex-col md:flex-row md:flex-wrap gap-3 md:gap-5";
+      break;
+    case "7":
+      containerClass =
+        "grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3";
+      break;
+    default:
+      containerClass =
+        "flex flex-col md:flex-row md:flex-wrap gap-3 md:gap-5";
+  }
+
   return (
-    <div className="container mx-auto flex flex-col md:flex-row md:flex-wrap gap-1 md:gap-2 w-full">
-      <div className="flex flex-col md:flex-row md:flex-wrap md:mt-3 gap-3 md:gap-5 w-full">
+    <div id="bf" className="max-w-6xl mx-auto my-6">
+    <div className="px-2">
+      <div className={containerClass}>
         {products.map((product, i) => (
-          <ProductCard
+          <Card
             key={product.id ?? `${product.name}-${i}`}
             product={product}
             allAddOns={addOns}
           />
         ))}
+      </div>
       </div>
     </div>
   );

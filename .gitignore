@@ -22,8 +22,8 @@
 /firebase-service-account.json
 # production
 /build
-/firebase-service-account.json
-
+/firebase-service-account-.json
+/update-need
 # misc
 .DS_Store
 *.pem

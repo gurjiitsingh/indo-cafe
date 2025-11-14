@@ -24,9 +24,10 @@ export type ProductType = {
   id: string | undefined;
   name: string;
   price: number;
+  stockQty: number;
   discountPrice: number | undefined;
-  categoryId:string;
-     productCat:string | undefined;
+  categoryId: string;
+  productCat: string | undefined;
   baseProductId: string;
   productDesc: string;
   sortOrder: number;
@@ -34,10 +35,14 @@ export type ProductType = {
   isFeatured: boolean;
   purchaseSession: string | null;
   quantity: number | null;
-  
   flavors: boolean;
-  status: 'published' | 'draft' | 'out_of_stock' | undefined;
+  status: "published" | "draft" | "out_of_stock" | undefined;
+
+  // ✅ New GST / Tax Fields
+  taxRate?: number | null; // e.g. 5, 12.5 etc.
+  taxType?: "inclusive" | "exclusive" | null; // inclusive → tax included in price, exclusive → added later
 };
+
 
 export type ProductTypeArr = {
   name: string;
@@ -65,6 +70,8 @@ const productSchema = z.object({
   price: z
     .string()
     .refine((value) => /^\d+$/.test(value), "Invalid product price"), // Refinement
+        discountPrice:z.string().optional(),
+    stockQty:z.string().optional(),
   sortOrder: z.string().min(1, { message: "Please select category" }),
 
   productDesc: z.string().min(1, { message: "Please select category" }),
@@ -85,42 +92,144 @@ const productSchema = z.object({
 });
 export type TproductSchema = z.infer<typeof productSchema>;
 
+// export const newPorductSchema = z.object({
+//   id: z.string().optional(),
+
+//   name: z.string().min(4, { message: "Product name is required" }),
+
+//   price: z
+//     .union([z.string(), z.number()])
+//     .transform((val) => Number(val))
+//     .refine((val) => !isNaN(val) && val >= 0, {
+//       message: "Invalid product price",
+//     }),
+
+// discountPrice: z
+//     .union([z.string(), z.number()])
+//     .optional()
+//     .transform((val) =>
+//       val === undefined || val === "" ? undefined : Number(val)
+//     )
+//     .refine(
+//       (val) => val === undefined || (!isNaN(val) && val >= 0),
+//       { message: "Invalid discount price" }
+//     ),
+
+//   stockQty: z
+//     .union([z.string(), z.number()])
+//     .optional()
+//     .transform((val) =>
+//       val === undefined || val === "" ? undefined : Number(val)
+//     )
+//     .refine((val) => val === undefined || !isNaN(val), {
+//       message: "Invalid stock quantity",
+//     }),
+
+//   categoryId: z.string().optional(),
+
+//   sortOrder: z
+//     .union([z.string(), z.number()])
+//     .transform((val) => Number(val))
+//     .refine((val) => !isNaN(val), { message: "Invalid sort order" }),
+
+//   productDesc: z.string().optional(),
+
+//   isFeatured: z.boolean().optional(),
+
+//   image: z.any().optional(),
+
+//   baseProductId: z.string().optional(),
+
+//   flavors: z.boolean().optional(),
+
+//   status: z
+//     .enum(["published", "draft", "out_of_stock"])
+//     .optional()
+//     .nullable(),
+// });
+
+
+
+
 export const newPorductSchema = z.object({
   id: z.string().optional(),
+
+  // ✅ Product name - required
   name: z.string().min(4, { message: "Product name is required" }),
+
+  // ✅ Price - must be a number >= 0
   price: z
+    .union([z.string(), z.number()])
+    .transform((val) => (typeof val === "string" ? parseFloat(val.replace(",", ".")) : val))
+    .refine((num) => !isNaN(num) && num >= 0, { message: "Invalid product price" }),
+
+  // ✅ Sort Order - must be an integer
+  sortOrder: z
+    .union([z.string(), z.number()])
+    .transform((val) => (typeof val === "string" ? parseInt(val) : val))
+    .refine((num) => !isNaN(num), { message: "Invalid sort order" }),
+
+  // ✅ Category selection
+  categoryId: z.string().min(1, { message: "Please select category" }),
+
+  // ✅ Status enum
+  status: z.enum(["published", "draft", "out_of_stock"]),
+
+  // ✅ Optional fields
+  discountPrice: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((val) => (val === undefined || val === "" ? undefined : Number(val)))
+    .refine((val) => val === undefined || (!isNaN(val) && val >= 0), {
+      message: "Invalid discount price",
+    }),
+
+  // ✅ Tax / GST Rate (optional)
+  taxRate: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((val) => (val === undefined || val === "" ? undefined : Number(val)))
+    .refine((val) => val === undefined || (!isNaN(val) && val >= 0 && val <= 100), {
+      message: "Invalid tax rate (0–100%)",
+    }),
+
+  // ✅ Tax Type (optional) - for future extensibility (GST, VAT, etc.)
+  taxType: z
     .string()
-    // .refine((value) => /^\d+$/.test(value), "Invalid product price"), // Refinement
-    .refine((value) => /[.,\d]+/.test(value), "Invalid product price"),
-    discountPrice:z.string().optional().default("0"),  
-    
-  //categoryId: z.string().min(1, { message: "Please select category" }),
-  categoryId:z.string().optional(),
-  sortOrder: z.string().min(1, { message: "Please add sort order" }),
-  productDesc: z
-    .string().optional(),
-   // .min(2, { message: "Product productDescription is required" }),
-  //  brand: z.string().min(1, { message: "Please select category" }),
-  //  dimensions:z.string().optional(),
-  //weight:z.string().optional(),
+    .optional()
+    .transform((val) => (val === undefined || val === "" ? undefined : val.trim()))
+    .refine(
+      (val) =>
+        val === undefined ||
+        ["GST", "VAT", "Service Tax", "None", ""].includes(val),
+      { message: "Invalid tax type" }
+    ),
+
+  // ✅ Stock Quantity
+  stockQty: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((val) => (val === undefined || val === "" ? undefined : Number(val)))
+    .refine((val) => val === undefined || !isNaN(val), {
+      message: "Invalid stock quantity",
+    }),
+
+  // ✅ Product Description
+  productDesc: z.string().optional(),
+
+  // ✅ Featured Product
   isFeatured: z.boolean().optional(),
 
-  // image: z.any().refine((file: File) => file?.length !== 0, "File is required"),
+  // ✅ Image file input
   image: z.any().optional(),
+
+  // ✅ Optional system fields
   baseProductId: z.string().optional(),
   flavors: z.boolean().optional(),
-    status: z
-    .enum(['published', 'draft', 'out_of_stock'])
-    .optional()
-    .nullable(),
-  // .refine((file) => file.size < MAX_FILE_SIZE, "Max size is 5MB.")
-  // .refine(
-  //   (file) => checkFileType(file),
-  //   "Only .jpg, .jpeg formats are supported."
-  // ),
 });
 
 export type TnewProductSchema = z.infer<typeof newPorductSchema>;
+
 
 export type ShowPorductT = {
   id: string;
@@ -135,37 +244,44 @@ export type ShowPorductT = {
 export const editPorductSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(4, { message: "Product name is required" }),
+
   price: z
     .string()
-    //.refine((value) => /^\d+$/.test(value), "Invalid product price"), // Refinement
-    .refine((value) => /^\d*[.,]?\d*$/.test(value), "Invalid product price"), // Refinement
-    discountPrice:z.string().optional(),
-  //  ^\d*[.,]?\d*$
-  // price: z
-  //   .string()
-  //   .refine((value) => /^\d+$/.test(value), "Invalid product price"), // Refinement
-  sortOrder: z.string().min(1, { message: "Please select category" }),
-  categoryId:z.string().optional(),
-  categoryIdOld:z.string().optional(),
-  productDesc: z
-    .string().optional(),
-   // .min(2, { message: "Product productDescription is required" }),
-  // brand: z.string().optional(),
-  // dimensions:z.string().optional(),
-  // weight:z.string().optional(),
+    .refine((value) => /^\d*[.,]?\d*$/.test(value), "Invalid product price"),
+
+  discountPrice: z.string().optional(),
+  stockQty: z.string().optional(),
+
+  sortOrder: z.string().min(1, { message: "Please enter sort order" }),
+
+  categoryId: z.string().optional(),
+  categoryIdOld: z.string().optional(),
+
+  productDesc: z.string().optional(),
+
   isFeatured: z.boolean().optional(),
 
   image: z.any().optional(),
   oldImgageUrl: z.string().optional(),
-    status: z
-    .enum(['published', 'draft', 'out_of_stock'])
+
+  status: z
+    .enum(["published", "draft", "out_of_stock"])
     .optional()
     .nullable(),
-  // .refine((file) => file.size < MAX_FILE_SIZE, "Max size is 5MB.")
-  // .refine(
-  //   (file) => checkFileType(file),
-  //   "Only .jpg, .jpeg formats are supported."
-  // ),
+
+  // ✅ New Fields for Tax (GST)
+  taxRate: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || /^\d*[.,]?\d*$/.test(val),
+      "Invalid tax rate (must be numeric)"
+    ),
+
+  taxType: z
+    .enum(["inclusive", "exclusive"])
+    .optional()
+    .default("inclusive"),
 });
 
 export type TeditProductSchema = z.infer<typeof editPorductSchema>;

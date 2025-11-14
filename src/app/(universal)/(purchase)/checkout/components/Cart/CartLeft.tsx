@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useCartContext } from "@/store/CartContext";
-import { FaChevronDown, FaCheck } from "react-icons/fa";
+import { FaChevronDown } from "react-icons/fa";
 import CouponDiscForm from "./CouponDiscForm";
 import { UseSiteContext } from "@/SiteContext/SiteContext";
 import DeliveryCost from "./DeliveryCost";
@@ -13,15 +13,15 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/store/LanguageContext";
 import { formatCurrencyNumber } from "@/utils/formatCurrency";
+import SetDeliveryType from "./SetDeliveryType";
 
 export default function CartLeft() {
   const { TEXT } = useLanguage();
   const {
     couponDisc,
     deliveryDis,
-    chageDeliveryType,
-    deliveryType,
     paymentType,
+    deliveryType,
     customerAddressIsComplete,
     setDeliveryCost,
     disablePickupCatDiscountIds,
@@ -40,8 +40,7 @@ export default function CartLeft() {
   const [calCouponDiscount, setCalCouponDisscount] = useState(0);
   const [flatCouponDiscount, setFlatCouponDisscount] = useState(0);
   const [couponDiscountPercentL, setcouponDiscountPercentL] = useState(0);
-  const [disableDeliveryBtn, setDisableDeliveryBtn] = useState(false);
-  const [disablePickUpBtn, setDisablePickUpBtn] = useState(false);
+
   const [orderAmountIsLowForDelivery, seOrderAmountIsLowForDelivery] =
     useState(false);
   const [noOffers, setNoOffers] = useState(false);
@@ -88,8 +87,8 @@ export default function CartLeft() {
 
     const roundedTotalCU = formatCurrencyNumber(
       roundedTotal ?? 0,
-      (settings.currency || "EUR") as string,
-      (settings.locale || "de-DE") as string
+      (settings.currency ) as string,
+      (settings.locale ) as string
     );
 
     //setitemTotalComa(roundedTotal.toFixed(2).replace(".", ","));
@@ -216,8 +215,8 @@ export default function CartLeft() {
 
     const netPayCU = formatCurrencyNumber(
       Number(netPay) ?? 0,
-      (settings.currency || "EUR") as string,
-      (settings.locale || "de-DE") as string
+      (settings.currency) as string,
+      (settings.locale ) as string
     );
 
     setEndTotalComma(netPayCU);
@@ -232,11 +231,6 @@ export default function CartLeft() {
     pickUpDiscountPercentL,
     calculatedPickUpDiscountL,
   ]);
-
-  useEffect(() => {
-    setDisablePickUpBtn(deliveryType === "pickup");
-    setDisableDeliveryBtn(deliveryType === "delivery");
-  }, [deliveryType]);
 
   useEffect(() => {
     if (deliveryType === "delivery") {
@@ -257,6 +251,8 @@ export default function CartLeft() {
     }
   }, [deliveryType, deliveryDis?.minSpend, itemTotal, deliveryDis?.price]);
 
+  
+
   async function proceedToOrder() {
     setIsLoading(true);
     try {
@@ -266,7 +262,7 @@ export default function CartLeft() {
 
       if (paymentType === "" || paymentType === undefined) {
         canCompleteOrder = true;
-       toast.error(TEXT.error_select_payment_type);
+        toast.error(TEXT.error_select_payment_type);
 
         allReadyAlerted = true;
         return;
@@ -278,55 +274,43 @@ export default function CartLeft() {
         return;
       }
 
-      // if (
-      //   deliveryType === "delivery" &&
-      //   (!deliveryDis || deliveryDis.price === undefined)
-      // ) {
-      //   canCompleteOrder = true;
-
-      //   if (deliveryDis && !isNaN(Number(deliveryDis.price))) {
-      //     const cost = Number(deliveryDis.price);
-      //     setdeliveryCostL(cost);
+      // if (deliveryType === "delivery") {
+      //    if (
+      //     !deliveryDis ||
+      //     typeof deliveryDis.price !== "number" ||
+      //     isNaN(deliveryDis.price)
+      //   ) {
+      //     console.log("deliveryDis.price-------",typeof(deliveryDis!.price))
+      //     setIsLoading(false);
+      //     toast.error(TEXT.error_address_not_deliverable);
+      //     return; // ⛔ stop
       //   }
 
-      //   if (!allReadyAlerted) {
-      //     toast.error(
-      //       "Wir können nicht an diese Adresse liefern. Bitte wählen Sie Abholung."
-      //     );
-      //     allReadyAlerted = true;
-      //   }
+      //  }
 
-      //   return;
-      // }
-
-      if (
-        deliveryType === "delivery" &&
-        (!deliveryDis || deliveryDis.price === undefined)
-      ) {
-        canCompleteOrder = true;
-
-        if (!allReadyAlerted) {
-         toast.error(TEXT.error_address_not_deliverable);
-          allReadyAlerted = true;
+      if (deliveryType === "delivery") {
+        if (!deliveryDis || deliveryDis.price === null) {
+          setIsLoading(false);
+          toast.error(TEXT.error_address_not_deliverable);
+          return; // ⛔ stop
         }
 
-        return;
-      }
+        // convert to number
+        const price = Number(deliveryDis.price);
 
-      // if (deliveryType === "delivery" && deliveryDis?.price !== undefined) {
-      //   const cost = Number(deliveryDis.price);
-      //   if (!isNaN(cost)) {
-      //     setdeliveryCostL(cost);
-      //   } else {
-      //     console.warn("Delivery price is invalid", deliveryDis.price);
-      //     setdeliveryCostL(0); // Safe fallback
-      //   }
-      // }
+        if (isNaN(price)) {
+          setIsLoading(false);
+          toast.error(TEXT.error_address_not_deliverable);
+          return;
+        }
+      }
 
       if (couponDisc?.minSpend && itemTotal < couponDisc.minSpend) {
         canCompleteOrder = true;
         if (!allReadyAlerted) {
-          toast.error(`${TEXT.error_min_purchase_coupon} : ${couponDisc?.minSpend} ${TEXT.error_min_purchase_suffix}`);
+          toast.error(
+            `${TEXT.error_min_purchase_coupon} : ${couponDisc?.minSpend} ${TEXT.error_min_purchase_suffix}`
+          );
 
           allReadyAlerted = true;
         }
@@ -336,7 +320,9 @@ export default function CartLeft() {
       if (orderAmountIsLowForDelivery && deliveryType !== "pickup") {
         canCompleteOrder = true;
         if (!allReadyAlerted) {
-          toast.error(`${TEXT.error_min_order_delivery} € ${deliveryDis?.minSpend}`);
+          toast.error(
+            `${TEXT.error_min_order_delivery} € ${deliveryDis?.minSpend}`
+          );
 
           allReadyAlerted = true;
         }
@@ -366,7 +352,7 @@ export default function CartLeft() {
       const couponCode = "KJKKS"; // couponDisc?.code?.trim() ? couponDisc.code : "NA";
 
       if (typeof deliveryCost !== "number" || Number.isNaN(deliveryCost)) {
-       toast.error(TEXT.error_unexpected_total);
+        toast.error(TEXT.error_unexpected_total);
 
         return;
       }
@@ -399,7 +385,23 @@ export default function CartLeft() {
 
       if (cartData.length !== 0) {
         //  toast.error(`cart length is more than 0,order started, ${cartData.length}`)
-        const orderMasterId = await createNewOrder(purchaseData);
+        //    const orderMasterId = await createNewOrder(purchaseData);
+
+        const orderResult = await createNewOrder(purchaseData);
+
+        if (!orderResult.success) {
+          // 🚫 Stock not available or failed validation
+          toast.error(orderResult.message || "Unable to create order.");
+          setIsLoading(false);
+          return; // stop further actions
+        }
+
+        const orderMasterId = orderResult.orderId;
+        if (!orderMasterId) {
+          toast.error("Unexpected error: missing order ID.");
+          setIsLoading(false);
+          return;
+        }
 
         if (paymentType === "stripe") {
           router.push(
@@ -415,8 +417,7 @@ export default function CartLeft() {
           );
         }
       } else {
-       toast.error(TEXT.error_empty_cart);
-
+        toast.error(TEXT.error_empty_cart);
       }
     } catch (error) {
       console.error("Order submission error:", error);
@@ -463,41 +464,7 @@ export default function CartLeft() {
             </div>
           </div>
 
-          <div className="font-semibold border-b border-slate-200 py-3 w-full flex  justify-start gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="h-5 flex justify-center">
-                {deliveryType === "pickup" && (
-                  <FaCheck className="text-green-300 " size={24} />
-                )}
-              </div>
-              <div className="w-fit">
-                <button
-                  disabled={disablePickUpBtn}
-                  onClick={() => chageDeliveryType("pickup")}
-                  className="flex gap-2  items-center text-sm text-slate-600 bg-green-200 border border-slate-200 rounded-2xl px-3 font-semibold py-1 w-full text-left "
-                >
-                  <span>{TEXT.pickup_button}</span>
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="h-5 flex justify-center">
-                {deliveryType === "delivery" && (
-                  <FaCheck className="text-green-300 " size={24} />
-                )}
-              </div>
-
-              <div className="w-fit">
-                <button
-                  disabled={disableDeliveryBtn}
-                  onClick={() => chageDeliveryType("delivery")}
-                  className="flex gap-2 items-center text-sm text-slate-600 bg-green-200 border border-slate-50 rounded-2xl px-3 font-semibold py-1 w-full text-left "
-                >
-                  <span>{TEXT.delivery_button}</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <SetDeliveryType />
 
           <DeliveryCost />
 
@@ -584,190 +551,4 @@ export default function CartLeft() {
       </div>
     </div>
   );
-
-  // return (
-  //   <div className="flex flex-col gap-4 w-full ">
-  //     <div className="flex flex-col bg-slate-50 p-5 h-full w-full gap-7 rounded-2xl">
-  //       <div className="flex flex-col gap-2 items-center">
-  //         <h2 className="text-xl font-semibold border-b border-slate-200 py-3 w-full uppercase">
-  //           {/* Shopping cart total */}
-  //           {/* Gesamtsumme im Warenkorb */}
-  //           Warenkorb-Summe.
-  //         </h2>
-
-  //         <div className="font-semibold border-b border-slate-200 py-3 w-full flex flex-col justify-between gap-4">
-  //           <div className="w-fit">
-  //             <button
-  //               onClick={() => setAddCoupon(!addCoupon)}
-  //               className="flex gap-2 items-center text-sm text-slate-600 bg-green-200 rounded-2xl px-3 font-semibold py-1 w-full text-left "
-  //             >
-  //               <span>Fügen Sie einen Gutschein hinzu </span>
-  //               <span>
-  //                 <FaChevronDown />
-  //               </span>
-  //             </button>
-  //           </div>
-
-  //           {addCoupon && (
-  //             <>
-  //               <CouponDiscForm />
-  //             </>
-  //           )}
-  //         </div>
-
-  //         <div className="font-semibold border-b border-slate-200 py-3 w-full flex justify-between">
-  //           <div className="text-sm font-semibold py-3 w-full text-left">
-  //             Zwischensumme
-  //           </div>
-  //           <div className="flex gap-1">
-  //             {itemTotalComa && <span>&#8364;</span>}{" "}
-  //             <span>{itemTotalComa}</span>
-  //           </div>
-  //         </div>
-
-  //         <div className="font-semibold border-b border-slate-200 py-3 w-full flex  justify-start gap-4">
-  //           <div className="flex flex-col gap-2">
-  //             <div className="h-5 flex justify-center">
-  //               {deliveryType === "pickup" && (
-  //                 <FaCheck className="text-green-300 " size={24} />
-  //               )}
-  //             </div>
-  //             <div className="w-fit">
-  //               <button
-  //                 disabled={disablePickUpBtn}
-  //                 onClick={() => chageDeliveryType("pickup")}
-  //                 className="flex gap-2  items-center text-sm text-slate-600 bg-green-200 border border-slate-200 rounded-2xl px-3 font-semibold py-1 w-full text-left "
-  //               >
-  //                 <span>Abholen </span>
-  //                 {/* <span>
-  //                 <FaChevronDown />
-  //               </span> */}
-  //               </button>
-  //             </div>
-  //           </div>
-  //           <div className="flex flex-col gap-2">
-  //             <div className="h-5 flex justify-center">
-  //               {deliveryType === "delivery" && (
-  //                 <FaCheck className="text-green-300 " size={24} />
-  //               )}
-  //             </div>
-
-  //             <div className="w-fit">
-  //               <button
-  //                 disabled={disableDeliveryBtn}
-  //                 onClick={() => chageDeliveryType("delivery")}
-  //                 className="flex gap-2 items-center text-sm text-slate-600 bg-green-200 border border-slate-50 rounded-2xl px-3 font-semibold py-1 w-full text-left "
-  //               >
-  //                 <span>Lieferung </span>
-  //                 {/* <span>
-  //                 <FaChevronDown />
-  //               </span> */}
-  //               </button>
-  //             </div>
-  //           </div>
-  //         </div>
-
-  //         <DeliveryCost />
-
-  //         <Pickup
-  //           pickupDiscountPersent={pickUpDiscountPercentL}
-  //           calculatedPickUpDiscount={calculatedPickUpDiscountL}
-  //         />
-
-  //         {onlyItemsWithDisabledCouponCode && (flatCouponDiscount+calCouponDiscount) !== 0 && <CouponDisc total={itemTotal} />}
-
-  //         <div className="font-semibold border-b border-slate-200 py-3 w-full flex justify-between items-center">
-  //           <div className="text-md font-semibold py-3 w-full text-left">
-  //             Gesamt
-  //           </div>
-  //           <div className="flex gap-1">
-  //             {endTotalComma && <span>&#8364;</span>}{" "}
-  //             <span>{endTotalComma}</span>
-  //           </div>
-  //         </div>
-  //       </div>
-
-  //       <div className="flex flex-col gap-2">
-  //         <div className="flex items-center space-x-2 text-sm text-gray-700">
-  //           <input
-  //             id="noOffersCheckbox"
-  //             type="checkbox"
-  //             checked={noOffers}
-  //             onChange={(e) => {
-  //               const checked = e.target.checked;
-  //               setNoOffers(checked);
-  //               setShowAlert(checked); // Show alert only when checked
-  //             }}
-  //             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-  //           />
-  //           <label htmlFor="noOffersCheckbox">
-  //             Ich möchte keine E-Mails über neue Angebote und Rabatte erhalten.
-  //           </label>
-  //         </div>
-
-  //         {showAlert && (
-  //           <div className="bg-yellow-100 text-yellow-800 p-3 rounded-md text-sm border border-yellow-300">
-  //             <p>
-  //               Sie haben gewählt, keine E-Mails über neue Angebote und Rabatte
-  //               zu erhalten. Wenn Sie E-Mails erhalten möchten, deaktivieren Sie
-  //               das Kontrollkästchen.
-  //             </p>
-  //             <p className="mt-1">
-  //               You have selected not to receive emails about new offers and
-  //               discounts. If you want to receive such emails, please uncheck
-  //               the box.
-  //             </p>
-  //           </div>
-  //         )}
-  //       </div>
-
-  //       {/* <button
-  //         disabled={isDisabled}
-  //         className="w-[200px] py-1 text-center bg-amber-400  font-bold rounded-xl text-[1.2rem] z-50"
-  //         onClick={() => {
-  //           proceedToOrder();
-  //         }}
-  //       >
-  //         <span className=" text-blue-900">Submit</span>
-  //         <span className=" text-sky-500">Order</span>
-  //       </button> */}
-
-  //       <button
-  //         onClick={proceedToOrder}
-  //         disabled={isLoading}
-  //         className="w-full   px-4 py-2 font-bold rounded-xl text-[1.2rem] bg-amber-400 text-blue-900 hover:bg-amber-500 disabled:opacity-50 flex items-center justify-center gap-2"
-  //       >
-  //         {isLoading && (
-  //           <svg
-  //             className="animate-spin h-5 w-5 text-white"
-  //             xmlns="http://www.w3.org/2000/svg"
-  //             fill="none"
-  //             viewBox="0 0 24 24"
-  //           >
-  //             <circle
-  //               className="opacity-25"
-  //               cx="12"
-  //               cy="12"
-  //               r="10"
-  //               stroke="currentColor"
-  //               strokeWidth="4"
-  //             ></circle>
-  //             <path
-  //               className="opacity-75"
-  //               fill="currentColor"
-  //               d="M4 12a8 8 0 018-8v8H4z"
-  //             ></path>
-  //           </svg>
-  //         )}
-  //         {isLoading ? (
-  //           "Placing Order..."
-  //         ) : (
-  //           <>
-  //             Place<span className="text-sky-500">Order</span>
-  //           </>
-  //         )}
-  //       </button>
-  //     </div>
-  //   </div>
-  // );
 }

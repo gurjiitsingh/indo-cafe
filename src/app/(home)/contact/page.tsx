@@ -1,10 +1,5 @@
-import React from 'react'
+import ContactUs from "@/custom/cus-components/ContactUs";
 
-export default function Contact() {
-  return (
-    <div className="relative container mx-auto py-5 p-1">
-      
-     
-    </div>
-  )
+export default function Page() {
+  return <ContactUs />;
 }

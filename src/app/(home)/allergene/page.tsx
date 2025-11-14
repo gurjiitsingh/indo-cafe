@@ -1,12 +1,8 @@
-import React from "react";
+import Allergens from "@/custom/cus-components/Allergens";
+
 
 export default function Page() {
   return (
-    <div className="relative container mx-auto py-5 p-1">
-    
-    
-   
-
-    </div>
+    <Allergens />
   );
 }

@@ -32,7 +32,7 @@ function TableRows({ order }:{order:TOrderMaster}){
       <TableCell>{order.time}</TableCell>
       <TableCell>completed</TableCell>
         <TableCell>$25</TableCell>
-      <TableCell>indozestfusioncafe-bs.de</TableCell>
+      <TableCell>Indozest Fusion Cafe</TableCell>
      </TableRow>
   );
 };

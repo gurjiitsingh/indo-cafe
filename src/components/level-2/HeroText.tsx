@@ -9,28 +9,28 @@ const bebas = Bebas_Neue({
 });
 
 export default function HeroText() {
-  const { TEXT } = useLanguage();
+  const { BRANDING } = useLanguage();
   const homePageOffer = useSafeSetting("home_page_offer");
   const offerInstruction = useSafeSetting("offer_instruction");
 
   return (
     <div>
-      <div className="flex mt-2 md:mt-0 md:flex-col gap-2">
+      <div className="flex mt-1 md:mt-0 items-center md:flex-col gap-2">
         <h2 className={`${bebas.className} hero-heading`}>
           {homePageOffer && <>{homePageOffer} </>}
           {offerInstruction && <span className="hero-subtext">{offerInstruction}</span>}
         </h2>
 
-        {TEXT.delivery_note && (
+        {BRANDING.delivery_note && (
           <div className="hero-delivery-note">
-            {TEXT.delivery_note}
+            {BRANDING.delivery_note}
           </div>
         )}
       </div>
 
-      {TEXT.home_page_disclaimer && (
+      {BRANDING.home_page_disclaimer && (
         <p className="hero-disclaimer">
-          {TEXT.home_page_disclaimer}
+          {BRANDING.home_page_disclaimer}
         </p>
       )}
     </div>
