@@ -5,6 +5,7 @@ import Products from "@/components/level-1/Products";
 import HeroSectionCustomMenu from "@/custom/cus-components/HeroSectionCustomMenu";
 import CategorySliderLight from "@/components/level-1/CategorySliderLight";
 import HeroSectionCustom from "@/custom/cus-components/HeroSectionCustom";
+import ProductMenuList from "@/components/level-1/ProductMenuList";
 
 //import { TnewProductSchema } from '@/lib/types';
 // import {  TnewProductSchema } from '@/lib/type/productType';
@@ -22,21 +23,15 @@ export default function Page() {
 
   return (
     <>
-      <div className="relative min-h-screen px-3 md:px-0 pb-6 mt-3">
+        <main className=" text-gray-900 font-sans">
         {/* Foreground Content */}
-        <div className="relative z-10">
+     
              <HeroSectionCustom />
 
           {/* Order Menu Button */}
-
-          <CategorySliderLight />
-          {/* <CategorySliderSm2 /> */}
-          <Products />
-          {/*      
-          <ProductCategoryList /> */}
-          {/* <ProductCategorySliderList /> */}
-        </div>
-      </div>
+   <ProductMenuList />
+    
+      </main>
     </>
   );
 }
