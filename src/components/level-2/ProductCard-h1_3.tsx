@@ -101,7 +101,7 @@ export default function ProdcutCardHorizontical({
 
       <div className="w-full flex flex-col pl-3 justify-between">
         <div className="w-full flex-col gap-4 justify-between ">
-          <div className="w-full flex gap-1 mb-1 justify-between ">
+          <div className="w-full flex gap-1  justify-between ">
             <div className="flex text-gray-600 text-sm font-sami-bold items-start justify-start  min-w-[180px] ">
            {/* product-card-add-title-cover-1 */}
               {/* {productCategoryIdG !== "" && <>{product.sortOrder}.&nbsp;</>} */}
@@ -122,7 +122,7 @@ export default function ProdcutCardHorizontical({
           </button>
 
           {!product.flavors && (
-            <div className=" flex  items-center  justify-between py-[1px]   rounded-3xl">
+            <div className=" flex  items-center  justify-between py-px   rounded-3xl">
             
               {/* common code start */}
               {product.discountPrice !== undefined &&
