@@ -16,13 +16,8 @@ const lato = Lato({ subsets: ["latin"], weight: ["400", "700"] });
 const roboto = Roboto({ subsets: ["latin"], weight: ["400", "500", "700"] });
 const abel = Abel({ subsets: ["latin"], weight: "400" });
 
-import { Inter } from "next/font/google";
 import { FaLeaf } from "react-icons/fa";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 const chicle = Chicle({
   subsets: ["latin"],
@@ -85,22 +80,25 @@ export default function ProdcutCardHorizontical19({
   //common code start
 
   //const priceRegular = product.price?.toString().replace (/\./g, ",") ?? "0,00";
-  const priceRegular = formatCurrencyNumber(
-    product.price ?? 0,
-    (settings.currency || "EUR") as string,
-    (settings.locale || "de-DE") as string
-  );
-  let priceDiscounted;
-  let priceTarget = product.price ?? 0;
-  if (product.discountPrice && product.discountPrice > 0) {
-    priceTarget = product.discountPrice;
-    // priceDiscounted = product.discountPrice.toString().replace (/\./g, ",");
-    priceDiscounted = formatCurrencyNumber(
-      product.discountPrice,
-      settings.currency as string,
-      settings.locale as string
-    );
-  }
+   const priceRegular = formatCurrencyNumber(
+   product.price ?? 0,       // numeric value
+     (settings.currency ) as string,
+       (settings.locale ) as string
+ );
+ 
+   let priceDiscounted;
+   let priceTarget = product.price ?? 0;
+   if (product.discountPrice && product.discountPrice > 0) {
+     priceTarget = product.discountPrice;
+     // priceDiscounted = product.discountPrice.toString().replace (/\./g, ",");
+     priceDiscounted = formatCurrencyNumber(
+       product.discountPrice,
+       (settings.currency ) as string,
+       (settings.locale ) as string
+     );
+   }
+
+   console.log("priceDiscounted---------------", priceDiscounted)
 
   // const cartProduct: cartProductType = {
   //   id: product.id,
@@ -125,7 +123,7 @@ export default function ProdcutCardHorizontical19({
   return (
     <div className="w-full lg:w-[49%] flex flex-col  shadow-sm  bg-white rounded-xl ">
     <div className="flex flex-col    items-center p-1">
-      <div className="rounded-full flex items-center justify-start  w-[120px] h-[120px]  md:w-[150px]  md:h-[150px]  overflow-hidden">
+     sfsfadsfsaffasfsa <div className="rounded-full flex items-center justify-start  w-[120px] h-[120px]  md:w-[150px]  md:h-[150px]  overflow-hidden">
         {product.image && (
           <img src={product.image} alt={product.name} className="h-full  " />
         )}

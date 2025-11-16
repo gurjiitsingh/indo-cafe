@@ -61,7 +61,7 @@ export default function HeroSectionCustom() {
             {/* Buttons */}
             <div className="flex flex-col md:flex-row justify-start gap-4 pt-4">
               <Link
-                href="https://eat.allo.restaurant/restaurant/masala-taste-of-india"
+                href="#bf"
                 rel="noopener noreferrer"
                 data-aos="fade-left"
                 className={`${chicle.className}  bg-amber-600 hover:bg-[#ecb32e] text-2xl text-white font-semibold px-6 py-1 rounded-xl transition text-center tracking-wide`}
@@ -72,7 +72,7 @@ export default function HeroSectionCustom() {
               </Link>
 
               <Link
-                href="/#bf"
+                href="/menu"
                 rel="noopener noreferrer"
                 className={`${chicle.className}  bg-white text-amber-600 text-2xl font-bold px-6 py-1 rounded-xl  border-amber-500 border hover:bg-[#bd8a15] hover:text-white transition text-center`}
                

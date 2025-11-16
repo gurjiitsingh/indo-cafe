@@ -29,6 +29,7 @@ export default function Products() {
   const cardType = process.env.NEXT_PUBLIC_PRODUCT_CARD_TYPE;
 
   // ✅ DYNAMIC IMPORT — SAFE, NO RERENDER LOOP
+
   const Card = useMemo(() => {
     switch (cardType) {
       case "1":
