@@ -12,9 +12,9 @@ const chicle = Chicle({
 
 export default function HeroSectionCustom() {
   return (
-    <section className="relative w-full overflow-hidden">
+    <section className="relative w-full overflow-hidden md:pb-12 md:bg-amber-500">
       {/* Background Image (Top Section) */}
-      <div className="relative w-full h-[50vh] md:h-[100vh] flex items-center justify-center">
+      <div className="relative w-full h-[50vh] md:h-screen flex items-center justify-center">
         <Image
           src="/images/hero-1.jpg" // Replace with your image path
           alt="Restaurant background"
@@ -47,10 +47,10 @@ export default function HeroSectionCustom() {
       {/* Text + Buttons Section (below image on mobile, overlay on desktop) */}
       <div className="relative bg-white md:bg-transparent md:absolute md:inset-0 md:flex md:items-center md:px-20 md:justify-start mt-0 md:mt-0">
         <div className="w-full flex justify-center md:justify-start">
-          <div className="text-[#2b2b2b] md:text-white max-w-lg px-6 pb-6  mt-[-60px] md:mt-0 md:p-0  text-left md:text-left">
+          <div className="text-[#2b2b2b] md:text-white max-w-lg px-0 pb-6  mt-[-60px] md:-mt-6  text-left md:text-left">
             {/* Title */}
             <h2
-              className={`${chicle.className} text-5xl md:text-6xl my-3 text-amber-600 md:text-white`}
+              className={`${chicle.className} text-5xl md:text-6xl mb-3 text-amber-600 md:text-white`}
             >
               Indozest Fusion Cafe
             </h2>

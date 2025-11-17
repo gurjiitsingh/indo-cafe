@@ -1,7 +1,7 @@
 export const SEO = {
-  title: "Indozest Fusion Cafe, 82-84 Standard Avenue, Coventry, United Kingdom",
+  title: "Indozest Fusion Cafe, Australia",
   description:
-    "Authentic  Sweets at Indozest Fusion Cafe. Order online for delivery or visit us in Standard Avenue, Coventry, United Kingdom.",
+    "Authentic  food at Indozest Fusion Cafe. Order online for delivery or visit us in 1490 Albany Hwy, Beckenham WA 6107 ,Australia",
 };
 
 
