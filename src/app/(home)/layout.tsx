@@ -21,11 +21,49 @@ const lato = Lato({
   weight: ["400", "700"],
 });
 
+
+
+
+
 export const metadata: Metadata = {
   title: SEO.title,
   description: SEO.description,
   other: { google: "notranslate" },
+
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180" },
+    ],
+  },
+
+  openGraph: {
+    title: SEO.title,
+    description: SEO.description,
+    url: "https://indozestfusioncafe.com",
+    siteName: SEO.title,
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: SEO.title,
+    description: SEO.description,
+    images: ["/og-image.jpg"],
+  },
 };
+
+
+
 
 export default function RootLayout({
   children,
