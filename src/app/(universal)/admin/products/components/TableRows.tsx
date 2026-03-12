@@ -39,7 +39,7 @@ function TableRows({ product }: { product: ProductType }) {
         )
       : "";
 
-  const statusLabel = product.status ?? "draft";
+  const statusLabel = product.publishStatus ?? "draft";
   const statusStyles = {
     published: "bg-green-100 text-green-800",
     draft: "bg-yellow-100 text-yellow-800",
@@ -84,8 +84,15 @@ function TableRows({ product }: { product: ProductType }) {
   return (
     <TableRow
       key={product.id}
-      className="whitespace-nowrap hover:bg-green-50 dark:hover:bg-zinc-800 transition rounded-xl"
+      className="whitespace-nowrap hover:bg-green-50 dark:hover:bg-zinc-100 transition rounded-xl"
     >
+      <TableCell className="text-sm font-medium text-gray-700">
+  {product.searchCode ? (
+    <span>{product.searchCode}</span>
+  ) : (
+    <span className="text-gray-400 italic">—</span>
+  )}
+</TableCell>
       {/* 🖼 Product Image */}
       <TableCell>
         <div className="px-3 py-1 text-center min-w-[100px]">
@@ -133,18 +140,19 @@ function TableRows({ product }: { product: ProductType }) {
       <TableCell>
         {product.taxRate !== undefined && product.taxRate !== null ? (
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-800">
-              {product.taxRate}%
-            </span>
-            <span
-              className={`text-[11px] px-1 py-[1px] rounded mt-1 w-fit ${
+             <span
+              className={`text-[11px] text-[8px] px-1 py-[1px] rounded  w-fit ${
                product.taxRate
                   ? "bg-green-100 text-green-700"
                   : "bg-red-100 text-red-700"
               }`}
             >
-              {product.taxRate ? "Included" : "Excluded"}
+              {product.taxType}
             </span>
+            <span className="text-sm font-medium text-gray-800">
+              {product.taxRate}%
+            </span>
+           
           </div>
         ) : (
           <span className="text-sm text-gray-400 italic">—</span>
@@ -189,8 +197,9 @@ function TableRows({ product }: { product: ProductType }) {
           {/* 🧩 Variants */}
           <Link
             href={{
-              pathname: "/admin/productsaddon",
-              query: { id: product.id },
+              pathname: "/admin/product-variant",
+                query: { nameBase:product.name,categoryBase:product.productCat,id: product.id,categoryId:product.categoryId,productCat:product.productCat },
+          
             }}
           >
             <Button

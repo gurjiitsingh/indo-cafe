@@ -1,16 +1,25 @@
 "use server";
 
-
 import { adminDb } from "@/lib/firebaseAdmin";
 import { Timestamp } from "firebase/firestore";
-import { addUserDirect } from "../user/dbOperation";
-import { addCustomerAddressDirect } from "../address/dbOperations";
+import { addUserDirect, addUserDirectPrimaryMOB } from "../user/dbOperation";
+import {
+  addCustomerAddressDirect,
+  addCustomerAddressDirectPrimaryMOB,
+} from "../address/dbOperations";
 import { TOrderMaster, orderMasterDataT } from "@/lib/types/orderMasterType";
-import { orderProductsT } from "@/lib/types/orderType";
-import { orderDataType, purchaseDataT } from "@/lib/types/cartDataType";
+import {
+  CartItem,
+  CartItemWithTax,
+  orderDataType,
+  purchaseDataT,
+} from "@/lib/types/cartDataType";
 import { ProductType } from "@/lib/types/productType";
-import admin from 'firebase-admin';
+import admin from "firebase-admin";
 import { checkStockAvailability } from "@/lib/firestore/checkStockAvailability";
+import { convertProductsToCartItems } from "@/lib/cart/convertProductsToCartItems";
+import { OrderProductT } from "@/lib/types/orderType";
+const TAX_IMPLEMENT = process.env.TAX_IMPLEMENT === "true";
 
 type orderMasterDataSafeT = Omit<orderMasterDataT, "createdAt"> & {
   createdAt: string; // ISO string
@@ -21,8 +30,9 @@ type FetchOrdersOptions = {
   pageSize?: number;
 };
 
-
-export async function createNewOrderCustomerAddress(purchaseData: purchaseDataT) {
+export async function createNewOrderCustomerAddress(
+  purchaseData: purchaseDataT
+) {
   const { address } = purchaseData;
   const { email, lastName, firstName } = address;
 
@@ -59,93 +69,178 @@ export async function createNewOrderCustomerAddress(purchaseData: purchaseDataT)
   return { addressAddedId, UserAddedId, customerName };
 }
 
+export async function createNewOrderCustomerAddressSMALL(
+  purchaseData: purchaseDataT
+) {
+  const { address } = purchaseData;
+  const { email = "", lastName, firstName, mobNo } = address;
+
+  const password = "123456";
+  const username = `${firstName}${lastName}`;
+
+  const finalEmail = email && email.trim() !== "" ? email : `${mobNo}@mail.com`;
+
+  // --- Create user ---
+  const formUser = new FormData();
+  formUser.append("username", username);
+  formUser.append("email", finalEmail);
+  formUser.append("password", password);
+  formUser.append("confirmPassword", password);
+  formUser.append("mobNo", mobNo);
+  formUser.append("firstName", firstName);
+  formUser.append("lastName", lastName);
+
+  const UserAddedId = (await addUserDirectPrimaryMOB(formUser)) as string;
+
+  // --- Add address ---
+  const formAddress = new FormData();
+  formAddress.append("firstName", firstName);
+  formAddress.append("lastName", lastName);
+  formAddress.append("userId", UserAddedId);
+  formAddress.append("email", finalEmail);
+  formAddress.append("mobNo", address.mobNo);
+  formAddress.append("password", password);
+  formAddress.append("addressLine1", address.addressLine1 ?? "");
+  formAddress.append("addressLine2", address.addressLine2 ?? "");
+  formAddress.append("city", address.city ?? "");
+  formAddress.append("state", address.state ?? "Punjab");
+  formAddress.append("zipCode", address.zipCode ?? "123");
+
+  const addressAddedId = await addCustomerAddressDirectPrimaryMOB(formAddress);
+
+  const customerName = `${firstName} ${lastName}`;
+
+  return { addressAddedId, UserAddedId, customerName };
+}
+
+const SHOULD_MAINTAIN_STOCK =
+  process.env.NEXT_PUBLIC_MAINTAIN_STOCK === "true" ||
+  process.env.NEXT_PUBLIC_MAINTAIN_STOCK === "1";
+
+import { calculateTaxForCart } from "@/lib/tax/calculateTaxForCart-withRounding";
+import { calculateOrderTotals } from "@/lib/orderAmount/calculateOrderTotals";
+import { toTimestamp } from "@/utils/toTimestamp";
+import { toAdminTimestamp } from "@/utils/toAdminTimestamp";
 
 export async function createNewOrder(purchaseData: orderDataType) {
 
- const {
-    endTotalG,
-    totalDiscountG,
-    addressId,
+  console.log("addreas full oredr masrer---------------",purchaseData)
+  const {
+    // -----------------------------
+    // BASIC
+    // -----------------------------
     userId,
     customerName,
+    customerPhone,        //  NEW
     email,
+
+    orderType,
+    tableNo,
+    addressId,
+
+    // -----------------------------
+    // DELIVERY ADDRESS (FLAT)
+    // -----------------------------
+    deliveryAddressLine1, //  NEW
+    deliveryAddressLine2, //  NEW
+    deliveryCity,         //  NEW
+    deliveryState,        //  NEW
+    deliveryZipcode,      //  NEW
+
+    // -----------------------------
+    // PAYMENT
+    // -----------------------------
     paymentType,
-    itemTotal,
-    deliveryCost,
+
+    // -----------------------------
+    // PRICING INPUTS
+    // -----------------------------
+    itemTotal,            // before tax & discount
+    deliveryFee,
+
+    // -----------------------------
+    // DISCOUNTS (LEGACY + CLEAN)
+    // -----------------------------
+    couponFlat,
+    calcouponPercent,
     calculatedPickUpDiscountL,
-    flatDiscount,
-    calCouponDiscount,
     couponCode,
-    couponDiscountPercentL,
+    couponPercentPercentL,
     pickUpDiscountPercentL,
+    totalDiscountG,
+
+    // -----------------------------
+    // FLAGS / META
+    // -----------------------------
     noOffers,
-    cartData,
+    cartData,             // cartProductType[]
+    source,
+
+    // -----------------------------
+    // SCHEDULING
+    // -----------------------------
+    scheduledAt,
+    isScheduled,          //  NEW
   } = purchaseData;
 
+  // 🔒 Normalize userId (defensive programming)
+  // const safeUserId =
+  //   typeof userId === "string"
+  //     ? userId.replace(/^"+|"+$/g, "")
+  //     : userId;
 
-  // validaton start
-
-
-//change main funciton
-
-// export async function createNewOrder(
-//   purchaseData: orderDataType
-// ): Promise<{ success: boolean; message: string; orderId?: string }> {
-
-
-
-  // try {
-  //   // ✅ DELIVERY VALIDATION
-  //   if (purchaseData.deliveryType === "delivery") {
-  //     if (!purchaseData.zipCode) {
-  //       return { success: false, message: "Zip code is required for delivery." };
-  //     }
-
-  //     // Check if ZIP exists in delivery list
-  //     const deliveryData = await fetchdeliveryByZip(purchaseData.zipCode);
-
-  //     if (!deliveryData || !deliveryData.name) {
-  //       return {
-  //         success: false,
-  //         message: "Sorry, we do not deliver to this zip code.",
-  //       };
-  //     }
-
-  //     // Optionally validate minimum spend
-  //     if (purchaseData.endTotalG < (deliveryData.minSpend || 0)) {
-  //       return {
-  //         success: false,
-  //         message: `Minimum order amount for delivery in ${deliveryData.name} is €${deliveryData.minSpend}.`,
-  //       };
-  //     }
-  //   }
-
-
-    //end new validation code
-
-
-  // Step 1: Check stock before order
-  const stockCheck = await checkStockAvailability(cartData);
-
-  if (!stockCheck.success) {
-    return { success: false, message: stockCheck.message };
+  // =====================================================
+  // 1️⃣ STOCK CHECK (BEFORE ANY CALCULATION)
+  // =====================================================
+  if (SHOULD_MAINTAIN_STOCK) {
+    const stockCheck = await checkStockAvailability(cartData);
+    if (!stockCheck.success) {
+      return { success: false, message: stockCheck.message };
+    }
   }
 
+  // =====================================================
+  // 2️⃣ TAX CALCULATION (SERVER = SOURCE OF TRUTH)
+  // =====================================================
+  // cartData is already cartProductType[]
+  const { products: cartWithTax, totalTax } = await calculateTaxForCart(
+    cartData
+  );
 
-  const nowUTC = new Date().toISOString(); // UTC ISO string (e.g. "2025-07-24T06:07:32.123Z")
-  
+  // =====================================================
+  // 3️⃣ TOTALS CALCULATION (SERVER = SOURCE OF TRUTH)
+  // =====================================================
+  const totals = calculateOrderTotals({
+    itemTotal,
+    couponFlat,
+    couponPercent: calcouponPercent,
+    pickupDiscount: calculatedPickUpDiscountL,
+    taxBeforeDiscount: totalTax,
+    deliveryFee: deliveryFee,
+  });
+
+  // =====================================================
+  // 4️⃣ TIMESTAMPS
+  // =====================================================
+  const nowUTC = new Date().toISOString();
+
   const nowGerman = new Date().toLocaleString("en-DE", {
     dateStyle: "medium",
     timeStyle: "medium",
     timeZone: "Europe/Berlin",
   });
 
-  // Get latest srno
+  const timeNow = new Date().toLocaleString("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "medium",
+    timeZone: "Asia/Kolkata",
+  });
+
+  // =====================================================
+  // 5️⃣ GENERATE SERIAL NUMBER (srno)
+  // =====================================================
   const collectionRef = adminDb.collection("orderMaster");
-  const snapshot = await collectionRef
-    .orderBy("srno", "desc")
-    .limit(1)
-    .get();
+  const snapshot = await collectionRef.orderBy("srno", "desc").limit(1).get();
 
   let new_srno = 1;
   if (!snapshot.empty) {
@@ -153,43 +248,166 @@ export async function createNewOrder(purchaseData: orderDataType) {
     new_srno = (latest?.srno || 0) + 1;
   }
 
- 
+  // =====================================================
+  // 6️⃣ ORDER STATUS
+  // =====================================================
+  //   const orderStatus = paymentType === "CASH" ? "COMPLETED" : "NEW";
 
-  const status = paymentType === "cod" ? "Completed" : "Payment Pending";
+  //cosnt orderStatus= scheduledTimestamp ? "SCHEDULED" : "NEW";
 
-  const orderMasterData = {
-    customerName,
-    email,
-    userId,
-    addressId,
-    itemTotal,
-    endTotalG,
-    deliveryCost,
-    calculatedPickUpDiscountL,
-    flatDiscount,
-    calCouponDiscount,
-    couponCode,
-    couponDiscountPercentL,
-    pickUpDiscountPercentL,
-    paymentType,
-    status,
-    totalDiscountG,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    createdAtUTC: nowUTC, // ISO string, cross-compatible
-    time: nowGerman,
-    srno: new_srno,
-  } as orderMasterDataT;
+  const paymentStatus = paymentType === "COD" ? "PAID" : "NEW";
+
+  // =====================================================
+  // 7️⃣ ORDER MASTER DATA (CLEAN + LEGACY)
+  // =====================================================
+  const scheduledTimestamp = toAdminTimestamp(scheduledAt);
+
+  if (scheduledTimestamp && scheduledTimestamp.toMillis() < Date.now()) {
+    return {
+      success: false,
+      message: "Scheduled time is in the past",
+    };
+  }
+
+  const MIN_BUFFER_MS = 30 * 60 * 1000;
+
+  if (
+    scheduledTimestamp &&
+    scheduledTimestamp.toMillis() < Date.now() + MIN_BUFFER_MS
+  ) {
+    return {
+      success: false,
+      message: "Please select a time at least 15 minutes from now",
+    };
+  }
+
+
+const orderMasterData: orderMasterDataT = {
+  // =====================================================
+  // BASIC
+  // =====================================================
+  id: "temp_id",
+ srno: new_srno,
+
+  customerId: userId,
+  customerName,
+  email,
+
+  customerPhone: customerPhone || "",
+  customerCountryCode: "+91", //  default
+
+  addressId,
+
+  // ---------- Delivery Address Snapshot (FLAT) ----------
+  dAddressLine1: deliveryAddressLine1 || "",
+  dAddressLine2: deliveryAddressLine2 || "",
+  dCity: deliveryCity || "Jalandhar",
+  dState: deliveryState || "Punjab",
+  dZipcode: deliveryZipcode || "",
+  dLandmark: "", //  optional default
+
+  tableNo,
+  orderType,
+  paymentMode:"CASH",
+
+  ownerId: "temp_OW_ID",     // 🔑 Restaurant owner
+  outletId: "temp_Oulet_ID", // 🔑 Outlet / Branch
+
+  // =====================================================
+  // LEGACY TOTALS (DO NOT TOUCH)
+  // =====================================================
+  itemTotal,
+  deliveryFee: deliveryFee,
+  //totalDiscountG,
   
+  pickUpDiscount:calculatedPickUpDiscountL,
+  couponPercent:calcouponPercent?calcouponPercent:couponFlat,
+  couponCode,
+  //couponPercentPercentL,
+  //pickUpDiscountPercentL,
 
-  // Add to orderMaster collection
+  // =====================================================
+  // TAX
+  // =====================================================
+  taxBeforeDiscount: totals.taxBeforeDiscount,
+  taxTotal: totals.taxTotal,
+
+  // =====================================================
+  // TOTALS (FINAL)
+  // =====================================================
+  productsCount: cartData.length,
+  discountTotal: totals.discountTotal,
+  subTotal: totals.subTotal,
+  grandTotal: totals.grandTotal,
+
+  // =====================================================
+  // PAYMENT (DEFAULTS ADDED)
+  // =====================================================
+  paymentStatus: "PAID",
+  paymentProvider: "CASH", //  safe default (STRIPE / PAYPAL later)
+  paymentMethod: "CASH",   //  VISA / GPAY later
+
+  // =====================================================
+  // ORDER STATE
+  // =====================================================
+  orderStatus: scheduledTimestamp ? "SCHEDULED" : "NEW",
+
+  // =====================================================
+  // SOURCE & META
+  // =====================================================
+  source,
+  staffId: null, //  POS only
+  notes: "",     //  optional
+
+  // =====================================================
+  // SYNC / OFFLINE (POS SAFE)
+  // =====================================================
+  syncStatus: "SYNCED", //  default
+  lastSyncedAt: admin.firestore.FieldValue.serverTimestamp(),
+
+  // =====================================================
+  // AUTOMATION
+  // =====================================================
+  printed: false,
+  acknowledged: false,
+
+  // =====================================================
+  // TIMESTAMPS
+  // =====================================================
+  createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+
+  // =====================================================
+  // SCHEDULING
+  // =====================================================
+  scheduledAt: scheduledTimestamp,
+  isScheduled: Boolean(scheduledTimestamp),
+
+  // =====================================================
+  // ARCHIVAL (SAFE DEFAULTS)
+  // =====================================================
+  // isArchived: false,
+  // archivedAt: null,
+};
+
+
+  //console.log("data to be saved server --------------", orderMasterData);
+
+  // =====================================================
+  // 8️⃣ SAVE ORDER MASTER
+  // =====================================================
   const orderMasterId = await addOrderToMaster(orderMasterData);
 
-  // Add each product to orderProducts
-  for (const product of cartData) {
+  // =====================================================
+  // 9️⃣ SAVE ORDER PRODUCTS (WITH TAX SNAPSHOT)
+  // =====================================================
+  for (const product of cartWithTax) {
     await addProductDraft(product, userId!, orderMasterId!);
   }
 
-  // Save marketing data
+  // =====================================================
+  // 🔟 MARKETING DATA
+  // =====================================================
   await marketingData({
     name: customerName,
     userId,
@@ -198,7 +416,9 @@ export async function createNewOrder(purchaseData: orderDataType) {
     noOfferEmails: noOffers,
   });
 
-  // Optional: mark email as unsubscribed in campaign list
+  // =====================================================
+  // 1️⃣1️⃣ EMAIL UNSUBSCRIBE (OPTIONAL)
+  // =====================================================
   if (noOffers) {
     const normalizedEmail = email.toLowerCase();
     const ref = adminDb.collection("campaignEmailListFinal");
@@ -220,8 +440,14 @@ export async function createNewOrder(purchaseData: orderDataType) {
     }
   }
 
- // return orderMasterId;
- return { success: true, message: "Order created", orderId: orderMasterId };
+  // =====================================================
+  //  DONE
+  // =====================================================
+  return {
+    success: true,
+    message: "Order created",
+    orderId: orderMasterId,
+  };
 }
 
 /**
@@ -231,7 +457,6 @@ export async function createNewOrder(purchaseData: orderDataType) {
  * @param email - Customer email address
  * @param marketingConsent - Boolean (true if allowed to send marketing)
  */
-
 
 export async function marketingData({
   name,
@@ -246,14 +471,12 @@ export async function marketingData({
   email: string;
   noOfferEmails: boolean;
 }) {
-  console.log("this is inside marketing data");
-
   // Get current German time
-  const now = new Date();
-  const germanDateStr = now.toLocaleString("en-DE", {
-    timeZone: "Europe/Berlin",
-  });
-  const germanDate = new Date(germanDateStr);
+  // const now = new Date();
+  // const germanDateStr = now.toLocaleString("en-DE", {
+  //   timeZone: "Europe/Berlin",
+  // });
+  // const germanDate = new Date(germanDateStr);
 
   const docRef = adminDb.collection("customerRecentOrder").doc(userId!);
 
@@ -271,7 +494,6 @@ export async function marketingData({
   );
 }
 
-
 export async function updateOrderMaster(id: string, status: string) {
   try {
     const docRef = adminDb.collection("orderMaster").doc(id);
@@ -284,7 +506,7 @@ export async function updateOrderMaster(id: string, status: string) {
 }
 
 export async function addProductDraft(
-  element: ProductType,
+  element: CartItemWithTax,
   userAddedId: string,
   orderMasterId: string
 ) {
@@ -293,8 +515,13 @@ export async function addProductDraft(
     name: element.name,
     price: element.price,
     quantity: element.quantity,
+    itemSubtotal: element.itemSubtotal,
     orderMasterId,
     userId: userAddedId,
+    taxAmount: element.taxAmount, // per one item
+    taxTotal: element.taxTotal, // tax * quantity
+    finalPrice: element.finalPrice, // price + tax
+    finalTotal: element.finalTotal, // finalPrice * quantity
   };
 
   try {
@@ -305,8 +532,8 @@ export async function addProductDraft(
   }
 }
 
-
 export async function addOrderToMaster(element: orderMasterDataT) {
+  // console.log("element-----------", element);
   try {
     const docRef = await adminDb.collection("orderMaster").add(element);
     return docRef.id;
@@ -315,7 +542,6 @@ export async function addOrderToMaster(element: orderMasterDataT) {
     return null;
   }
 }
-
 
 export async function fetchOrdersPaginated({
   afterId,
@@ -340,47 +566,82 @@ export async function fetchOrdersPaginated({
   const orders = snapshot.docs.map((doc) => {
     const data = doc.data();
     const date = data.createdAt?.toDate?.();
-    const formattedDate = date?.toLocaleString("en-GB", {
-      year: "numeric",
-      month: "long",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    // const formattedDate = date?.toLocaleString("en-GB", {
+    //   year: "numeric",
+    //   month: "long",
+    //   day: "2-digit",
+    //   hour: "2-digit",
+    //   minute: "2-digit",
+    // });
 
-//     const dateObj =
-//     typeof data.createdAt === "object" && data.createdAt?.toDate
-//     ? data.createdAt.toDate()
-//     : data.createdAt
-//     ? new Date(data.createdAt)
-//     : null;
-// const createdAtISO = dateObj?.toISOString() || data.createdAtUTC || "";
+    //  const deliveryTime = data.scheduledAt?.toDate?.();
 
-
+    //     const dateObj =
+    //     typeof data.createdAt === "object" && data.createdAt?.toDate
+    //     ? data.createdAt.toDate()
+    //     : data.createdAt
+    //     ? new Date(data.createdAt)
+    //     : null;
+    // const createdAtISO = dateObj?.toISOString() || data.createdAtUTC || "";
 
     return {
       id: doc.id,
+
+      // 🧾 Customer Info
       customerName: data.customerName || "",
       email: data.email || "",
-      paymentType: data.paymentType || "",
-      status: data.status || "",
-      couponCode: data.couponCode || "",
-      userId: data.userId || "",
+      customerId: data.userId || "",
       addressId: data.addressId || "",
-      endTotalG: data.endTotalG || 0,
-      itemTotal: data.itemTotal || 0,
-      totalDiscountG: data.totalDiscountG || 0,
-      flatDiscount: data.flatDiscount || 0,
-      srno: data.srno || 0,
-      timeId: data.timeId || "",
-      deliveryCost: data.deliveryCost || 0,
+      ownerId: "temp_OW_ID", // 🔑 Restaurant owner (Auth UID)
+      outletId: "temp_Oulet_ID",
+
+      // 🕒 Order Info
+     srno: data.srno || 0,
+      tableNo: data.tableNo,
+      orderType: data.orderType,
+      createdAt:
+        data.createdAt?.toDate?.().toISOString?.() || data.createdAt || "",
+      createdAtUTC: data.createdAtUTC || "",
+      isScheduled: data.isScheduled,
+      scheduledAt:
+        data.scheduledAt?.toDate?.().toISOString?.() || data.scheduledAt || "",
+
+      // 💳 Payment Info
+      paymentMode: data.paymentType || "",
+      paymentStatus: data.paymentStatus || "NEW",
+
+      // 📦 Status
+      status:data.publishStatus || "",
+      orderStatus:data.publishStatus || "NEW",
+
+      // 💰 Item & Discount Totals
+      itemTotal: data.itemTotal || 0, // legacy (before discount & tax)
+      totalDiscountG: data.totalDiscountG || 0, // legacy
+      couponFlat: data.couponFlat || 0,
       calculatedPickUpDiscountL: data.calculatedPickUpDiscountL || 0,
-      calCouponDiscount: data.calCouponDiscount || 0,
-      couponDiscountPercentL: data.couponDiscountPercentL || 0,
+      calcouponPercent: data.calcouponPercent || 0,
+      couponPercentPercentL: data.couponPercentPercentL || 0,
       pickUpDiscountPercentL: data.pickUpDiscountPercentL || 0,
-      createdAt: data.createdAt?.toDate?.().toISOString() || "",
-      createdAtUTC: data.createdAtUTC || "", // ✅ Add support
-      time: data.time || "",
+      couponCode: data.couponCode || "",
+
+      // 🚚 Delivery / Fees
+      deliveryFee: data.deliveryFee || data.deliveryFee || 0,
+
+      // 🧮 Tax & Totals (new clean structure)
+      discountTotal: data.discountTotal || data.totalDiscountG || 0,
+      taxBeforeDiscount: data.taxBeforeDiscount || 0,
+      taxTotal: data.taxTotal || data.taxTotal || 0,
+      subTotal: data.subTotal || data.itemTotal || 0,
+      grandTotal:
+        data.grandTotal || data.finalGrandTotal || data.endTotalG || 0,
+
+      // 🔖 Meta / Automation
+      source: data.source || "POS",
+      printed: data.printed || false,
+      acknowledged: data.acknowledged || false,
+
+      // 📝 Notes
+      notes: data.notes || "",
     } as orderMasterDataT;
   });
 
@@ -392,7 +653,10 @@ export async function fetchOrdersMaster(): Promise<orderMasterDataSafeT[]> {
   const data: orderMasterDataSafeT[] = [];
 
   const collectionRef = adminDb.collection("orderMaster");
-  const querySnapshot = await collectionRef.orderBy("srno", "desc").limit(20).get();
+  const querySnapshot = await collectionRef
+    .orderBy("srno", "desc")
+    .limit(20)
+    .get();
 
   querySnapshot.forEach((doc) => {
     const raw = doc.data() as orderMasterDataT;
@@ -442,8 +706,6 @@ export async function fetchOrdersMaster(): Promise<orderMasterDataSafeT[]> {
 //   return data;
 // }
 
-
-
 export async function deleteOrderMasterRec(id: string) {
   const docRef = adminDb.collection("orderMaster").doc(id);
 
@@ -474,9 +736,6 @@ export async function fetchOrdersMasterByUserId(
   return data;
 }
 
-
-
-
 export async function fetchOrderMasterById(id: string) {
   const docSnap = await adminDb.collection("orderMaster").doc(id).get();
 
@@ -490,11 +749,10 @@ export async function fetchOrderMasterById(id: string) {
   // const createdAtStr =
   //   raw.createdAt?.toDate?.().toISOString?.() ?? new Date().toISOString();
 
-
-   const createdAtStr =
+  const createdAtStr =
     raw.createdAt instanceof Timestamp
       ? raw.createdAt.toDate().toISOString()
-      : new Date().toISOString();  
+      : new Date().toISOString();
 
   return {
     ...raw,
@@ -503,11 +761,10 @@ export async function fetchOrderMasterById(id: string) {
   } as orderMasterDataSafeT;
 }
 
-
 /***************** Order detail  **************************/
 
 export async function fetchOrderProductsByOrderMasterId(OrderMasterId: string) {
-  const data: orderProductsT[] = [];
+  const data: OrderProductT[] = [];
 
   const snapshot = await adminDb
     .collection("orderProducts")
@@ -515,7 +772,14 @@ export async function fetchOrderProductsByOrderMasterId(OrderMasterId: string) {
     .get();
 
   snapshot.forEach((doc) => {
-    data.push(doc.data() as orderProductsT);
+    const d = doc.data();
+
+    // 🔥 Convert Timestamp -> ISO String
+    if (d.createdAt && d.createdAt.toDate) {
+      d.createdAt = d.createdAt.toDate().toISOString();
+    }
+
+    data.push(d as OrderProductT);
   });
 
   return data;
@@ -523,7 +787,6 @@ export async function fetchOrderProductsByOrderMasterId(OrderMasterId: string) {
 
 
 /*********************** stock decrease ******************************* */
-
 
 /**
  * Decrease stock quantities after payment confirmation.
@@ -590,7 +853,7 @@ export async function decreaseProductStock(orderMasterId: string) {
       const currentStock = product.stockQty ?? 0;
       const quantityOrdered = item.quantity ?? 0;
 
-      // ✅ Check stock
+      //  Check stock
       if (currentStock < quantityOrdered) {
         insufficientStock.push(`${product.name} (only ${currentStock} left)`);
         continue;
@@ -598,10 +861,10 @@ export async function decreaseProductStock(orderMasterId: string) {
 
       const newStock = currentStock - quantityOrdered;
 
-      // ✅ Add to batch
+      //  Add to batch
       batch.update(productRef, {
         stockQty: newStock,
-        status: newStock === 0 ? "out_of_stock" : product.status,
+        status: newStock === 0 ? "out_of_stock" : product.stockStatus,
       });
     }
 
@@ -614,16 +877,13 @@ export async function decreaseProductStock(orderMasterId: string) {
     }
 
     await batch.commit();
-    console.log("✅ Stock updated successfully for order:", orderMasterId);
+    console.log(" Stock updated successfully for order:", orderMasterId);
     return { success: true, message: "Stock updated successfully." };
   } catch (error) {
     console.error("❌ Error decreasing product stock:", error);
     return { success: false, message: "Error updating stock." };
   }
 }
-
-
-
 
 /**
  * Decrease product stock quantities after successful payment.
@@ -679,7 +939,7 @@ export async function decreaseProductStockFromOrder(orderMasterId: string) {
     // 3️⃣ Loop through all ordered items
     for (const doc of orderProductsSnapshot.docs) {
       const orderItem = doc.data();
-      const productId = orderItem.id; // ✅ Firestore document ID of the product
+      const productId = orderItem.id; //  Firestore document ID of the product
       const orderQty = orderItem.quantity ?? 0;
 
       if (!productId || orderQty <= 0) continue;
@@ -698,10 +958,13 @@ export async function decreaseProductStockFromOrder(orderMasterId: string) {
 
       batch.update(productRef, {
         stockQty: newStock,
-        status: newStock === 0 ? "out_of_stock" : productData?.status ?? "published",
+        status:
+          newStock === 0 ? "out_of_stock" : productData?.orderStatus ?? "published",
       });
 
-      console.log(`✅ ${productData?.name ?? productId}: ${currentStock} → ${newStock}`);
+      console.log(
+        ` ${productData?.name ?? productId}: ${currentStock} → ${newStock}`
+      );
     }
 
     // 4️⃣ Commit batch
@@ -714,178 +977,3 @@ export async function decreaseProductStockFromOrder(orderMasterId: string) {
     return { success: false, message: "Error updating stock." };
   }
 }
-
-
-
-
-
-
-
-
-// const ORDERS_PER_PAGE = 10;
-
-// export async function fetchOrdersMaster1(cursorId: string | null = null) {
-//   const collectionRef = collection(adminDb, "orderMaster");
-
-//   let q;
-//   if (cursorId) {
-//     const cursorDoc = await getDoc(doc(collectionRef, cursorId));
-//     if (cursorDoc.exists()) {
-//       q = query(
-//         collectionRef,
-//         orderBy("createdAt", "desc"),
-//         startAfter(cursorDoc),
-//         limit(ORDERS_PER_PAGE)
-//       );
-//     } else {
-//       throw new Error("Cursor document not found");
-//     }
-//   } else {
-//     q = query(collectionRef, orderBy("createdAt", "desc"), limit(ORDERS_PER_PAGE));
-//   }
-
-//   const snapshot = await getDocs(q);
-
-//   const orders: orderMasterDataT[] = snapshot.docs.map((doc) => {
-//     const data = doc.data();
-//     const date = data.createdAt?.toDate?.();
-//     const formattedDate = date?.toLocaleString("en-GB", {
-//       year: "numeric",
-//       month: "long",
-//       day: "2-digit",
-//       hour: "2-digit",
-//       minute: "2-digit",
-//     });
-
-//     return {
-//       id: doc.id,
-//       customerName: data.customerName || "",
-//       email: data.email || "",
-//       paymentType: data.paymentType || "",
-//       status: data.status || "",
-//       time: formattedDate || "",
-//       couponCode: data.couponCode || "",
-//       userId: data.userId || "",
-//       addressId: data.addressId || "",
-//       endTotalG: data.endTotalG || 0,
-//       itemTotal: data.itemTotal || 0,
-//       totalDiscountG: data.totalDiscountG || 0,
-//       flatDiscount: data.flatDiscount || 0,
-//       srno: data.srno || 0,
-//       timeId: data.timeId || "",
-//       deliveryCost: data.deliveryCost || 0,
-//       calculatedPickUpDiscountL: data.calculatedPickUpDiscountL || 0,
-//       calCouponDiscount: data.calCouponDiscount || 0,
-//       couponDiscountPercentL: data.couponDiscountPercentL || 0,
-//       pickUpDiscountPercentL: data.pickUpDiscountPercentL || 0,
-//       createdAt: data.createdAt,
-//     } as orderMasterDataT;
-//   });
-
-//   return {
-//     orders,
-//     firstDocId: snapshot.docs[0]?.id || null,
-//     lastDocId: snapshot.docs[snapshot.docs.length - 1]?.id || null,
-//   };
-// }
-
-
-// export async function addOrder(element) {
-//   try {
-//     const docRef = await addDoc(collection(adminDb, "orderProducts"), element);
-//     console.log("Document written with ID: ", docRef.id);
-//     // Clear the form
-//   } catch (e) {
-//     console.error("Error adding document: ", e);
-//   }
-// }
-
-// export async function fetchOrders(){
-
-//  // const result = await db.select().from(product);
-//   const result = await getDocs(collection(adminDb, "product"))
-// //  console.log(result.docs)
-
-// let data;
-// data = [];
-//   result.forEach((doc) => {
-//     data.push({id:doc.id, ...doc.data()});
-//   });
-//  // console.log(data)
-//   return data;
-// }
-
-
-// export async function fetchOrdersPaginated1({ afterId, pageSize = 10 }: FetchOrdersOptions) {
-//   const collectionRef = collection(adminDb, 'orderMaster');
-//   let q;
-
-//   if (afterId) {
-//     const docRef = await getDoc(doc(adminDb, 'orderMaster', afterId));
-//     q = query(collectionRef, orderBy('createdAt', 'desc'), startAfter(docRef), limit(pageSize));
-//   } else {
-//     q = query(collectionRef, orderBy('createdAt', 'desc'), limit(pageSize));
-//   }
-
-//   const snapshot = await getDocs(q);
-
-//   const orders = snapshot.docs.map((doc) => {
-    
-//     const data = doc.data();
-//     const date = data.createdAt?.toDate?.();
-//     const formattedDate = date?.toLocaleString('en-GB', {
-//       year: 'numeric',
-//       month: 'long',
-//       day: '2-digit',
-//       hour: '2-digit',
-//       minute: '2-digit',
-//     });
-
-//     return {
-//       id: doc.id,
-//       customerName: data.customerName || '',
-//       email: data.email || '',
-//       paymentType: data.paymentType || '',
-//       status: data.status || '',
-//       time: data.time || '',
-//       couponCode: data.couponCode || '',
-//       userId: data.userId || '',
-//       addressId: data.addressId || '',
-//       endTotalG: data.endTotalG || 0,
-//       itemTotal: data.itemTotal || 0,
-//       totalDiscountG: data.totalDiscountG || 0,
-//       flatDiscount: data.flatDiscount || 0,
-//       srno: data.srno || 0,
-//       timeId: data.timeId || '',
-//       deliveryCost: data.deliveryCost || 0,
-//       calculatedPickUpDiscountL: data.calculatedPickUpDiscountL || 0,
-//       calCouponDiscount: data.calCouponDiscount || 0,
-//       couponDiscountPercentL: data.couponDiscountPercentL || 0,
-//       pickUpDiscountPercentL: data.pickUpDiscountPercentL || 0,
-//       createdAt: data.createdAt?.toDate?.().toISOString() || '',
-//     } as orderMasterDataT;
-//   });
-
-//   const lastDoc = snapshot.docs[snapshot.docs.length - 1];
-//   return { orders, lastId: lastDoc?.id || null };
-// }
-
-
-
-// export async function fetchOrdersMaster(): Promise<orderMasterDataT[]> {
-//   const data = [] as orderMasterDataT[];
-//   //  const q = query(collection(adminadminDb, "orderMaster"));
-//   //  const querySnapshot = await getDocs(q);
-
-//   const collectionRef = collection(adminadminDb, "orderMaster");
-
-//   const targetQuery = query(collectionRef, orderBy("srno", "desc"), limit(20));
-//   const querySnapshot = await getDocs(targetQuery);
-
-//   querySnapshot.forEach((doc) => {
-//     const pData = { id: doc.id, ...doc.data() } as orderMasterDataT;
-//     data.push(pData);
-//   });
-//   return data;
-// }
-

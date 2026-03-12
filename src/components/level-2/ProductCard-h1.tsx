@@ -47,10 +47,10 @@ export default function ProdcutCardHorizontical({
 
   const priceRegular = formatCurrencyNumber(
   product.price ?? 0,       // numeric value
-  "GBP",                    // UK currency
-  "en-GB"                   // English (United Kingdom) locale
+  (settings.currency) as string,
+      (settings.locale) as string
 );
-console.log("settings.currency---------------",settings.currency)
+
   let priceDiscounted;
   let priceTarget = product.price ?? 0;
   if (product.discountPrice && product.discountPrice > 0) {
@@ -58,8 +58,8 @@ console.log("settings.currency---------------",settings.currency)
     // priceDiscounted = product.discountPrice.toString().replace (/\./g, ",");
     priceDiscounted = formatCurrencyNumber(
       product.discountPrice,
-      (settings.currency || "GBP") as string,
-      (settings.locale || "en-GB") as string
+      (settings.currency) as string,
+      (settings.locale) as string
     );
   }
 
@@ -72,6 +72,8 @@ console.log("settings.currency---------------",settings.currency)
     image: product.image,
     categoryId: product.categoryId,
     productCat: product.productCat!,
+   taxRate: product.taxRate,
+    taxType: product.taxType,
     
   };
 
@@ -86,7 +88,7 @@ console.log("settings.currency---------------",settings.currency)
 
   //common code end
   return (
-    <div className="bg-white w-full  lg:w-[48%]    shadow-md flex flex-row   rounded-xl items-center p-1">
+    <div className="bg-white w-full  lg:w-[49%]    shadow-md flex flex-row   rounded-xl items-center p-1">
       <div className="rounded-lg border-1 border-slate-100 flex items-center justify-center w-[120px]   md:w-[150px]    overflow-hidden">
         {product.image && (
           <img

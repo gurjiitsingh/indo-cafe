@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card"
 import { FormEvent } from "react"
-import { signIn } from "next-auth/react";// useSession
+//import { signIn } from "next-auth/react";// useSession
 //import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -24,9 +24,9 @@ const loginData = {
   callbackUrl:"/admin"
 }
 
-const response  = await signIn('credentials', loginData);
+//const response  = await signIn('credentials', loginData);
 
-console.log("in form ",response)
+//console.log("in form ",response)
 
 // if(!response?.error){
 //   console.log("login--------")
@@ -48,7 +48,7 @@ console.log("in form ",response)
 
   return (
     
-    <Card className="bg-gray-100   lg:w-[70%] m-auto p-12" >
+    <Card className="  lg:w-[70%] m-auto p-12" >
    
     <form onSubmit={submitHandler}>
       <div className="flex w-full flex-col gap-8  my-15 ">

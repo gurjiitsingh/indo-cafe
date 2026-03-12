@@ -5,7 +5,7 @@ import CartContext from "./SauceContext";
 
 //import { productT } from "@/lib/types/productT";
 import { addressT } from "@/lib/types/addressType";
-import { productT, ProductType } from "@/lib/types/productType";
+import {  ProductType } from "@/lib/types/productType";
 
 interface Props {
   children: React.ReactNode;
@@ -88,7 +88,7 @@ export const CartProvider: React.FC<Props> = ({
   }
 
   function addsauceToCart(newsauce: ProductType) {
-console.log("sauce to add -------", newsauce)
+
     const isItemInCart = cartData.find(
       (cartItem) => cartItem.id === newsauce.id
     ); // check if the item is already in the cart
@@ -112,7 +112,7 @@ console.log("sauce to add -------", newsauce)
           ...newsauce,
           quantity: 1,
         //  purchaseSession: localStorage.getItem("cart_sauce_data_id"),
-          status: "draft",
+          publishStatus: "draft",
         },
       ]); // if the item is not in the cart, add the item to the cart
     }
@@ -211,7 +211,7 @@ console.log("sauce to add -------", newsauce)
           ...newsauce,
           quantity: 1,
           purchaseSession: localStorage.getItem("cart_sauce_data_id"),
-          status: "draft",
+          publishStatus: "draft",
         },
       ]); // if the item is not in the cart, add the item to the cart
     }}

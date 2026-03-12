@@ -58,7 +58,7 @@ export async function addNewProduct(formData: FormData) {
 
   try {
     const docRef = await adminDb.collection("productaddon").add(data);
-    revalidateTag("addons");
+    revalidateTag("addons", "max");
     console.log("Document written with ID: ", docRef.id);
   } catch (e) {
     console.error("Error adding document: ", e);
@@ -89,10 +89,10 @@ type rt = {
 
 export async function deleteProduct(
   id: string,
-  oldImgageUrl: string
+  oldImageUrl: string
 ): Promise<rt> {
-  console.log("out put ", id, oldImgageUrl);
-  revalidateTag("addons");
+  console.log("out put ", id, oldImageUrl);
+  revalidateTag("addons", "max");
   return { errors: "Delete not implemented yet" };
 }
 
@@ -141,7 +141,7 @@ export async function editAddOnProduct(formData: FormData) {
   try {
     const docRef = adminDb.collection("productaddon").doc(id);
     await docRef.set(productUpdtedData);
-      revalidateTag("addons");
+      revalidateTag("addons", "max");
   } catch (error) {
     console.log("error", error);
     return { errors: "Cannot update" };

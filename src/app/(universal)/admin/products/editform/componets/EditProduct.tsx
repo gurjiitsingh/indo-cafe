@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { editPorductSchema, TeditProductSchema } from "@/lib/types/productType";
+import { editProductSchema, TeditProductSchema } from "@/lib/types/productType";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchCategories } from "@/app/(universal)/action/category/dbOperations";
 import { categoryType } from "@/lib/types/categoryType";
@@ -26,7 +26,7 @@ const EditProduct = () => {
     setValue,
     handleSubmit,
   } = useForm<TeditProductSchema>({
-    resolver: zodResolver(editPorductSchema),
+    resolver: zodResolver(editProductSchema),
   });
 
   useEffect(() => {
@@ -37,16 +37,17 @@ const EditProduct = () => {
       setValue("id", id);
       setValue("name", data.name);
       setValue("productDesc", data.productDesc);
-      setValue("oldImgageUrl", data.image);
+      setValue("oldImageUrl", data.image);
       setValue("price", data.price?.toString() ?? "0");
       setValue("discountPrice", data.discountPrice?.toString() ?? "0");
-      setValue("stockQty", data.stockQty?.toString() ?? "-1");
-      setValue("status", data.status ?? "published");
+      setValue("stockQty", data.stockQty?.toString() ?? "0");
+      setValue("publishStatus",data.publishStatus ?? "published");
       setValue("sortOrder", data.sortOrder?.toString() ?? "0");
       setValue("categoryId", data.categoryId);
       setValue("isFeatured", data.isFeatured);
       setValue("taxRate", data.taxRate?.toString() ?? "");
       setValue("taxType", data.taxType ?? "inclusive");
+       setValue("searchCode", data.searchCode ?? "0");
     }
 
     async function loadCategories() {
@@ -70,10 +71,11 @@ const EditProduct = () => {
     formData.append("categoryId", data.categoryId!);
     formData.append("sortOrder", data.sortOrder);
     formData.append("productDesc", data.productDesc ?? "");
-    formData.append("status", data.status ?? "published");
-    formData.append("oldImgageUrl", data.oldImgageUrl ?? "");
+    formData.append("status",data.publishStatus ?? "published");
+    formData.append("oldImageUrl", data.oldImageUrl ?? "");
     formData.append("isFeatured", data.isFeatured ? "true" : "false");
-
+ formData.append("searchCode", data.searchCode ?? "");
+    
     // Tax fields
     formData.append("taxRate", data.taxRate ?? "");
     formData.append("taxType", data.taxType ?? "inclusive");
@@ -86,7 +88,7 @@ const EditProduct = () => {
     setIsSubmitting(false);
 
     if (!result?.errors) {
-   //   alert("✅ Product updated successfully!");
+      //   alert(" Product updated successfully!");
       router.push(`/admin/products?productId=${data.id}`);
     } else {
       alert("❌ Something went wrong. Check console for details.");
@@ -106,7 +108,9 @@ const EditProduct = () => {
         <div className="flex-1 flex flex-col gap-5">
           {/* Product Details */}
           <div className="bg-white rounded-xl p-4 border shadow-sm flex flex-col gap-3">
-            <h2 className="font-semibold text-lg text-gray-800">Product Details</h2>
+            <h2 className="font-semibold text-lg text-gray-800">
+              Product Details
+            </h2>
 
             <input {...register("id")} hidden />
 
@@ -122,7 +126,41 @@ const EditProduct = () => {
               <p className="text-xs text-destructive">{errors.name?.message}</p>
             </div>
 
-            <div className="flex flex-col gap-1">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              
+
+
+
+                <div className="flex flex-col gap-1">
+                  <label className="label-style">Category</label>
+                  <select {...register("categoryId")} className="input-style py-1">
+                    <option value="">Select Category</option>
+                    {categoryData.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-destructive">
+                    {errors.categoryId?.message}
+                  </p>
+                </div>
+
+
+             
+
+              <div className="flex flex-col gap-1">
+                <label className="label-style">Search Code / SKU</label>
+                <input
+                  {...register("searchCode")}
+                  className="input-style py-1"
+                  placeholder="Enter SKU, barcode, or short code"
+                />
+                <p className="text-xs text-destructive">{errors.searchCode?.message}</p>
+              </div>
+            </div>
+
+            {/* <div className="flex flex-col gap-1">
               <label className="label-style">Category</label>
               <select {...register("categoryId")} className="input-style py-1">
                 <option value="0">Do not change Category</option>
@@ -135,7 +173,7 @@ const EditProduct = () => {
               <p className="text-xs text-destructive">
                 {errors.categoryId?.message}
               </p>
-            </div>
+            </div> */}
           </div>
 
           {/* Price Section */}
@@ -162,6 +200,9 @@ const EditProduct = () => {
                   {...register("discountPrice")}
                   className="input-style py-1"
                   placeholder="Enter discount price"
+                  onFocus={(e) => {
+                    if (e.target.value === "0") e.target.value = "";
+                  }}
                 />
                 <p className="text-xs text-destructive">
                   {errors.discountPrice?.message}
@@ -175,6 +216,9 @@ const EditProduct = () => {
                 {...register("stockQty")}
                 className="input-style py-1"
                 placeholder="Enter stock quantity"
+                onFocus={(e) => {
+                  if (e.target.value === "0") e.target.value = "";
+                }}
               />
               <p className="text-xs text-destructive">
                 {errors.stockQty?.message}
@@ -187,8 +231,10 @@ const EditProduct = () => {
         <div className="flex-1 flex flex-col gap-5">
           {/* Image Upload */}
           <div className="bg-white rounded-xl p-4 border shadow-sm flex flex-col gap-3">
-            <h2 className="font-semibold text-lg text-gray-800">Product Image</h2>
-            <input {...register("oldImgageUrl")} hidden />
+            <h2 className="font-semibold text-lg text-gray-800">
+              Product Image
+            </h2>
+            <input {...register("oldImageUrl")} hidden />
             <input
               {...register("image")}
               type="file"
@@ -220,7 +266,10 @@ const EditProduct = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="label-style">Sort Order</label>
-                <input {...register("sortOrder")} className="input-style py-1" />
+                <input
+                  {...register("sortOrder")}
+                  className="input-style py-1"
+                />
                 <p className="text-xs text-destructive">
                   {errors.sortOrder?.message}
                 </p>
@@ -228,13 +277,13 @@ const EditProduct = () => {
 
               <div>
                 <label className="label-style">Status</label>
-                <select {...register("status")} className="input-style py-1">
+                <select {...register("publishStatus")} className="input-style py-1">
                   <option value="published">Published</option>
                   <option value="draft">Draft</option>
                   <option value="out_of_stock">Out of Stock</option>
                 </select>
                 <p className="text-xs text-destructive">
-                  {errors.status?.message}
+                  {errors.publishStatus?.message}
                 </p>
               </div>
             </div>
@@ -247,6 +296,9 @@ const EditProduct = () => {
                   {...register("taxRate")}
                   className="input-style py-1"
                   placeholder="e.g. 5, 12, 18"
+                   onFocus={(e) => {
+    if (e.target.value) e.target.value = "";
+  }}
                 />
                 <p className="text-xs text-destructive">
                   {errors.taxRate?.message}
@@ -256,7 +308,9 @@ const EditProduct = () => {
               <div>
                 <label className="label-style">GST Type</label>
                 <select {...register("taxType")} className="input-style py-1">
-                  <option value="inclusive">Inclusive (Deducted from total)</option>
+                  <option value="inclusive">
+                    Inclusive (Deducted from total)
+                  </option>
                   <option value="exclusive">Exclusive (Added on total)</option>
                 </select>
               </div>
@@ -270,7 +324,9 @@ const EditProduct = () => {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className={`btn-save w-full mt-2 ${isSubmitting ? "opacity-80" : ""}`}
+              className={`btn-save w-full mt-2 ${
+                isSubmitting ? "opacity-80" : ""
+              }`}
             >
               {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>

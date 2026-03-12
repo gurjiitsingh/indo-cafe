@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-
+import { FaThumbsUp, FaShieldAlt, FaSmile } from "react-icons/fa";
 import { Chicle } from "next/font/google";
 import Link from "next/link";
 
@@ -12,74 +12,112 @@ const chicle = Chicle({
 
 export default function HeroSectionCustom() {
   return (
-    <section className="relative w-full overflow-hidden md:pb-12 md:bg-amber-500">
-      {/* Background Image (Top Section) */}
-      <div className="relative w-full h-[50vh] md:h-screen flex items-center justify-center">
+    <section className="relative w-full overflow-hidden">
+      
+      {/* ==========================
+          HERO IMAGE WITH LOGO
+      =========================== */}
+      <div className="relative w-full h-[50vh] md:h-[90vh] flex items-center justify-center">
+
         <Image
-          src="/images/hero-1.jpg" // Replace with your image path
+          src="/images/hero-2.jpg"
           alt="Restaurant background"
           fill
           className="object-cover"
           priority
         />
 
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/0 md:bg-black/0 " />
+        {/* dark overlay (transparent right now) */}
+        <div className="absolute inset-0 bg-black/0 md:bg-black/0" />
 
-        {/* Logo only over image on mobile */}
-        <div className="absolute  bottom-[13rem] md:bottom-auto md:left-20 md:top-40 flex justify-center md:justify-start z-20">
-          <div
-            className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-white flex items-center justify-center shadow-lg"
-            data-aos="fade-right"
-          >
-            <img
-              src="/logo-1.png"
-              alt="Logo"
-              className="w-20 h-20 md:w-24 md:h-24 object-contain"
-            />
+        {/* LOGO inside container with padding */}
+        <div className="absolute bottom-[13rem] md:bottom-auto md:top-40 w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex justify-center md:justify-start z-20">
+            <div
+              className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-white flex items-center justify-center shadow-lg"
+              data-aos="fade-right"
+            >
+              <img
+                src="/logo-10.png"
+                alt="Logo"
+                className="w-20 h-20 md:w-24 md:h-24 object-contain"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Curved white bottom */}
-        {/* <div className="absolute bottom-0 left-0 right-0 h-20 bg-white rounded-t-[50%]" /> */}
+        {/* curved transition bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-white rounded-t-[50%]" />
       </div>
 
-      {/* Text + Buttons Section (below image on mobile, overlay on desktop) */}
-      <div className="relative bg-white md:bg-transparent md:absolute md:inset-0 md:flex md:items-center md:px-20 md:justify-start mt-0 md:mt-0">
-        <div className="w-full flex justify-center md:justify-start">
-          <div className="text-[#2b2b2b] md:text-white max-w-lg px-0 pb-6  mt-[-60px] md:-mt-6  text-left md:text-left">
+      {/* ==========================
+          TEXT + BUTTONS
+      =========================== */}
+      <div
+        className="
+        relative
+        bg-white
+        md:bg-transparent
+        md:absolute
+        md:inset-0
+        md:flex
+        md:items-center
+        md:justify-center
+      "
+      >
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex justify-center md:justify-start">
+
+          <div className="text-[#2b2b2b] md:text-white max-w-lg pb-6 mt-[-60px] md:mt-0">
+
             {/* Title */}
             <h2
-              className={`${chicle.className} text-5xl md:text-6xl mb-3 text-amber-600 md:text-white`}
+              className={`${chicle.className} text-4xl md:text-5xl my-3 text-[#ea9244] md:text-white`}
             >
-              Indozest Fusion Cafe
+              Indozest Fusioncafe
             </h2>
 
             {/* Features */}
-       
+            <ul className="space-y-2 text-base text-[12px]">
+              <li className="flex items-center justify-center md:justify-start gap-2 text-[#5e8147] md:text-white">
+                <FaThumbsUp className="text-[#5e8147] md:text-white" />
+                No platform fees
+              </li>
+              <li className="flex items-center justify-center md:justify-start gap-2 text-[#5e8147] md:text-white">
+                <FaShieldAlt className="text-[#5e8147] md:text-white" />
+                No payment fees
+              </li>
+              <li className="flex items-center justify-center md:justify-start gap-2 text-[#5e8147] md:text-white">
+                <FaSmile className="text-[#5e8147] md:text-white" />
+                1235{" "}
+                <a
+                  href="#"
+                  className="underline text-[#5e8147] md:text-white hover:text-green-400"
+                >
+                  Guest Recommendations
+                </a>
+              </li>
+            </ul>
 
             {/* Buttons */}
             <div className="flex flex-col md:flex-row justify-start gap-4 pt-4">
               <Link
-                href="#bf"
+                href="/#order_now"
                 rel="noopener noreferrer"
                 data-aos="fade-left"
-                className={`${chicle.className}  bg-amber-600 hover:bg-[#ecb32e] text-2xl text-white font-semibold px-6 py-1 rounded-xl transition text-center tracking-wide`}
-               
-            
+                className={`${chicle.className} bg-[#ea9244] border-white border-2 hover:bg-[#657f53] text-2xl text-white font-semibold px-6 py-1 rounded-xl transition text-center tracking-wide`}
               >
-                🍴 ORDER NOW
+                🍴 ORDER MENU
               </Link>
 
               <Link
                 href="/menu"
                 rel="noopener noreferrer"
-                className={`${chicle.className}  bg-white text-amber-600 text-2xl font-bold px-6 py-1 rounded-xl  border-amber-500 border hover:bg-[#bd8a15] hover:text-white transition text-center`}
-               
+                className={`${chicle.className} bg-white text-[#ea9244] text-2xl font-bold px-6 py-1 rounded-xl border border-[#ea9244] hover:bg-[#5e8147] hover:text-white transition text-center`}
               >
-                MENU
+                Menu
               </Link>
             </div>
+
           </div>
         </div>
       </div>

@@ -12,17 +12,25 @@ import {
   // searchAddressByUserId,
 } from "@/app/(universal)/action/address/dbOperations";
 import { FaCheck } from "react-icons/fa";
-import { useSession } from "next-auth/react";
+//import { useSession } from "next-auth/react";
 
-//import { searchUserById } from "@/app/(universal)/action/user/dbOperation";
+
 import { createNewOrderCustomerAddress } from "@/app/(universal)/action/orders/dbOperations";
 import { purchaseDataT } from "@/lib/types/cartDataType";
 import { fetchdeliveryByZip } from "@/app/(universal)/action/delivery/dbOperation";
 import { UseSiteContext } from "@/SiteContext/SiteContext";
 import { useLanguage } from '@/store/LanguageContext';
+import { useCartContext } from "@/store/CartContext";
+
+
+
 
 const Address = () => {
-  // const { endTotalG, cartData, totalDiscountG } = useCartContext();
+   const { 
+   // endTotalG, 
+    cartData, 
+   // totalDiscountG 
+  } = useCartContext();
 const { TEXT } = useLanguage();
   const {
     //deliveryDis,
@@ -36,7 +44,7 @@ const { TEXT } = useLanguage();
     emailFormToggle,
   } = UseSiteContext();
 
-  const { data: session } = useSession();
+  //const { data: session } = useSession();
 
   useEffect(() => {
    
@@ -46,12 +54,12 @@ const { TEXT } = useLanguage();
     if (deliveryType === null) {
       chageDeliveryType("pickup");
     }
-  }, [session, customerEmail]);
-
+ // }, [session, customerEmail]);
+}, [ customerEmail]);
   useEffect(() => {
     setCustomerAddressIsComplete(false);
     setValue("password", "123456");
-    setValue("city", "Lower Saxony");
+    setValue("city", "abc");
   }, []);
 
   async function handleZipcodeChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -122,6 +130,7 @@ const { TEXT } = useLanguage();
         state: data.state,
         zipCode: data.zipCode,
       };
+   
       if (typeof window !== "undefined") {
         localStorage.setItem("customer_address", JSON.stringify(customAddress));
       }
@@ -147,7 +156,15 @@ const { TEXT } = useLanguage();
         localStorage.setItem("customer_name", JSON.stringify(customerNameS));
       }
 
-      //createNewOrderFile(cartData, customAddress);
+  const WINONDER_ENABLED = process.env.NEXT_PUBLIC_WINONDER === "true";
+
+console.log("WINONDER_ENABLED----------------", WINONDER_ENABLED)
+  if (WINONDER_ENABLED) {
+    const { createNewOrderFile } = await import(
+      '@/app/(universal)/action/newOrderFile/newfile'
+    );
+    createNewOrderFile(cartData, customAddress);
+  }
     }
     // end of ok order condition
   }

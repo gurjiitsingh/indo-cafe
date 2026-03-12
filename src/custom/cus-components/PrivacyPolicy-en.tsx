@@ -16,9 +16,9 @@ export default function PrivacyPolicy_en() {
       <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
 
       <p className="mb-4">
-        At <strong>Indozest Fusion Cafe</strong> (
+        At <strong>Masala Taste of India</strong> (
         <a href="https://www.masala-gf.de" className="text-blue-600 underline">
-          www.Fusion Cafe
+          www.masala-gf.de
         </a>
         ), we take your privacy seriously. This page explains how we collect, use, and protect your personal data.
       </p>

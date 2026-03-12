@@ -1,7 +1,7 @@
 export const SEO = {
-  title: "Indozest Fusion Cafe, Australia",
+  title: "Indo Zestfusion Cafe – 1490 Albany Hwy, Beckenham WA 6107 ,Australia",
   description:
-    "Authentic  food at Indozest Fusion Cafe. Order online for delivery or visit us in 1490 Albany Hwy, Beckenham WA 6107 ,Australia",
+    "Authentic food at Grill Hut , 1490 Albany Hwy, Beckenham WA 6107 ,Australia. Order online for delivery ",
 };
 
 
@@ -11,15 +11,15 @@ export const BRANDING = {
   offer_instruction: "",
   delivery_note: "Delivery is also available.",
   home_page_disclaimer:"",// "Food may differ from image.",
-  brand: "Indozest Fusion Cafe",
-  tag_line: "Indozest Fusion Cafe",
-  brand_name: "Indozest Fusion Cafe",
+  brand: "Indo Zestfusion Cafe",
+  tag_line: "",
+  brand_name: "Indo Zestfusion Cafe ",
    poweredBy: "Powered by",
     poweredByUrl: "http://www.gstadeveloper.com",
     copyright: {
       prefix: "Copyright ©",
       suffix: "All Rights Reserved by",
-      company: "Indozest Fusion Cafe"
+      company: "Indo Zestfusion Cafe "
     },
 
 
@@ -30,7 +30,7 @@ export const BRANDING = {
   copyright: {
     prefix: "Copyright ©",
     suffix: "All Rights Reserved by",
-    company: "Indozest Fusion Cafe",
+    company: "Indo Zestfusion Cafe ",
   },
 },
 
@@ -38,8 +38,8 @@ export const BRANDING = {
 // Order complete
 
   order_complete_heading: "Your order is complete",
-  pickup_time: "",
-  delivery_time: "",
+  pickup_time: "Pickup: 20–25 minutes",
+  delivery_time: "Delivery time: 40–55 minutes",
 
 
   //admin sidebar
@@ -83,7 +83,7 @@ export const BRANDING = {
       title: "Quick Links",
       items: [
         { name: "Home", href: "/" },
-        { name: "Menu", href: "/" },
+        { name: "Menu", href: "/menu" },
         { name: "About", href: "/about" },
         { name: "Contact", href: "/contact" },
         // { name: "Reservation", href: "/reservation" },

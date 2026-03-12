@@ -13,26 +13,25 @@ import { MdOutlinePhoneIphone } from "react-icons/md";
 export default function HeroSection() {
   return (
     <div className="relative min-h-screen flex flex-col justify-center items-center text-center ">
-      {/* ✅ Background Image */}
+      {/*  Background Image */}
       <div
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/images/hero.jpg')" }}
       ></div>
 
-      {/* ✅ Optional dark overlay for better text visibility */}
+      {/*  Optional dark overlay for better text visibility */}
       <div className="absolute inset-0 bg-black/10 z-0"></div>
 
-      {/* ✅ Content */}
+      {/*  Content */}
       <div className="h-screen w-full relative z-10 flex flex-col justify-between pt-[20%]  md:pt-[5%] pb-[13%] md:pb-[3%] md: gap-6 md:gap-4    ">
         {/* Logo (optional) */}
 
         {/* Title */}
         <h1 className=" text-white text-5xl  md:text-7xl font-bold tracking-widest mb-2 playfair-display-800">
-          
-          Indozest 
+          MASALA
           <span>
             <br />
-           Fusion Cafe
+            Taste of India
           </span>
         </h1>
 

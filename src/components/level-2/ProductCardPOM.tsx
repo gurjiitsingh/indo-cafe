@@ -79,6 +79,8 @@ export default function ProductCardPrductOfMonth({
     image: product.image,
     categoryId: product.categoryId,
     productCat: product.productCat!,
+    taxRate: product.taxRate,
+    taxType: product.taxType,
     
   };
 

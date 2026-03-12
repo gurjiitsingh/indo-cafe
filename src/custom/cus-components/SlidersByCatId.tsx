@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fetchCategories } from "@/app/(universal)/action/category/dbOperations";
+import { fetchProducts } from "@/app/(universal)/action/products/dbOperation";
 import ProductSlider from "../../components/level-1/ProductSlider";
-
+import { FaUtensils } from "react-icons/fa";
 
 import { Ultra } from "next/font/google";
 
@@ -33,33 +35,27 @@ export default function SlidersByCatId() {
   const [products, setProducts] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  const loadData = async () => {
-    try {
-      const [catsRes, prodsRes] = await Promise.all([
-        fetch("/api/categories"),
-        fetch("/api/products"),
-      ]);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [cats, prods] = await Promise.all([
+          fetchCategories(),
+          fetchProducts(),
+        ]);
 
-      const [cats, prods] = await Promise.all([
-        catsRes.json(),
-        prodsRes.json(),
-      ]);
+        setCategories(Array.isArray(cats) ? cats : []);
+        setProducts(Array.isArray(prods) ? prods : []);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        setCategories([]);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      setCategories(Array.isArray(cats) ? cats : []);
-      setProducts(Array.isArray(prods) ? prods : []);
-    } catch (error) {
-      console.error("Error loading data:", error);
-      setCategories([]);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  loadData();
-}, []);
-
+    loadData();
+  }, []);
 
   if (loading)
     return (

@@ -44,7 +44,7 @@ export const SiteProvider: React.FC<Props> = ({
   const [productCategoryIdG, setProductCategoryIdL] = useState<string>("");
   const [newOrderCondition, setNewOrderConditionL] = useState<boolean>(false);
   const [paymentType, setPaymentTypeL] = useState<string>("");
-  const [deliveryCost, setDeliveryCostL] = useState<number>(0);
+  const [deliveryFee, setdeliveryFeeL] = useState<number>(0);
   const [settings, setSettings] = useState<SettingsDataType>({});
   //const [disablePickupCatDiscountIds, setDisablePickupCatDiscountIdsL] = useState<string[] | null>(null);
   const [disablePickupCatDiscountIds, setDisablePickupCatDiscountIdsL] =
@@ -54,63 +54,29 @@ export const SiteProvider: React.FC<Props> = ({
   // useEffect(() => {
   //   getAllSettings().then(setSettings).catch(console.error);
   // }, []);
-//  useEffect(() => {
-//   getAllSettings()
-//     .then((fetched) => {
-//       setSettings({
-//         // currency: fetched.currency || process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'EUR',
-//         // locale: fetched.locale || process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'de-DE',
-//         // ...fetched, // place this last so fetched values override defaults if present
-//           currency:  process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'GBP',
-//         locale:  process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'en-GB',
-       
-//       });
-//     })
-//     .catch((err) => {
-//       console.error("Error fetching settings:", err);
-//       // fallback to .env if Firestore fetch fails
-//       setSettings({
-//         currency: process.env.NEXT_PUBLIC_DEFAULT_CURRENCY || 'GBP',
-//         locale: process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'en-GB',
-//       });
-//     });
-// }, []);
-
 useEffect(() => {
   getAllSettings()
     .then((fetched) => {
+      setSettings({
+        // Default values from .env
+        currency: process.env.NEXT_PUBLIC_DEFAULT_CURRENCY as string,
+        locale: process.env.NEXT_PUBLIC_DEFAULT_LOCALE as string,
 
-      // ✅ Start with everything Firestore provides
-      const merged: SettingsDataType = { ...fetched };
-
-      // ✅ Apply .env fallback ONLY if Firestore key is missing
-
-      if (merged.currency == null) {
-        merged.currency = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ?? null;
-      }
-
-      if (merged.locale == null) {
-        merged.locale = process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? null;
-      }
-
-      if (merged.display_category == null) {
-        merged.display_category = process.env.NEXT_PUBLIC_DEFAULT_DISPLAY_CATEGORY ?? null;
-      }
-
-      // ✅ Done — everything else stays exactly as Firestore sent
-      setSettings(merged);
+        // Now include everything from Firestore
+        ...fetched,  // this overwrites defaults if Firestore has values
+      });
     })
     .catch((err) => {
       console.error("Error fetching settings:", err);
 
-      // ✅ Firestore failed → ONLY .env values (NO hardcoded defaults)
+      // Fallback to .env if Firestore fails
       setSettings({
-        currency: process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ?? null,
-        locale: process.env.NEXT_PUBLIC_DEFAULT_LOCALE ?? null,
-        display_category: process.env.NEXT_PUBLIC_DEFAULT_DISPLAY_CATEGORY ?? null,
+        currency: process.env.NEXT_PUBLIC_DEFAULT_CURRENCY as string,
+        locale: process.env.NEXT_PUBLIC_DEFAULT_LOCALE as string,
       });
     });
 }, []);
+
 
 
   useEffect(() => {
@@ -199,8 +165,8 @@ useEffect(() => {
     setPaymentTypeL(s);
   }
 
-  function setDeliveryCost(e: number) {
-    setDeliveryCostL(e);
+  function setdeliveryFee(e: number) {
+    setdeliveryFeeL(e);
   }
   function setDisablePickupCatDiscountIds(CatIds: string[]) {
     setDisablePickupCatDiscountIdsL(CatIds);
@@ -211,7 +177,7 @@ useEffect(() => {
       value={{
         allProduct,
         setAllProduct,
-        // handleSearchForm,
+        //     handleSearchForm,
         // setHandleSearchForm,
         productToSearchQuery,
         setProductToSearchQuery,
@@ -227,8 +193,8 @@ useEffect(() => {
         emailFormToggle,
         deliveryType,
         chageDeliveryType,
-        deliveryCost,
-        setDeliveryCost,
+        deliveryFee,
+        setdeliveryFee,
         couponDisc,
         setCouponDisc,
         deliveryDis,

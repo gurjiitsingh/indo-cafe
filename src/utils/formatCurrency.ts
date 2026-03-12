@@ -13,15 +13,19 @@
 
 export function formatCurrencyNumber(
   amount: number,
-  currency?: string | null,
-  locale?: string | null
+  currency?: string,
+  locale?: string
 ): string {
-  const safeLocale = locale || "en-GB";
-  const safeCurrency = currency || "EUR";
+  const defaultCurrency = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ;
+  const defaultLocale = process.env.NEXT_PUBLIC_DEFAULT_LOCALE ;
+  
 
-  return new Intl.NumberFormat(safeLocale, {
+  const cur = currency ?? defaultCurrency;
+  const loc = locale ?? defaultLocale;
+
+  return new Intl.NumberFormat(loc, {
     style: "currency",
-    currency: safeCurrency,
+    currency: cur,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);

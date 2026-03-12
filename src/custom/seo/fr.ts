@@ -1,7 +1,7 @@
 export const SEO = {
-  title: "Masala – Indian Restaurant in Gifhorn, Lower Saxony",
+  title: "Indo Zestfusion Cafe – ",
   description:
-    "Authentic Indian food at Masala Gifhorn. Order online for delivery or visit us in Lower Saxony.",
+    "Authentic Indian food at Indo Zestfusion Cafe Gifhorn. Order online for delivery or visit us in Lower Saxony.",
 };
 
 
@@ -11,15 +11,15 @@ export const BRANDING = {
   offer_instruction: "",
   delivery_note: "Delivery is also available.",
   home_page_disclaimer:"",// "Food may differ from image.",
-  brand: "Masala",
-  tag_line: "Taste of India",
-  brand_name: "Indozest Fusion Cafe",
+  brand: "Indo Zestfusion Cafe",
+  tag_line: "",
+  brand_name: "Indo Zestfusion Cafe ",
    poweredBy: "Powered by",
     poweredByUrl: "http://www.gstadeveloper.com",
     copyright: {
       prefix: "Copyright ©",
       suffix: "All Rights Reserved by",
-      company: "Indozest Fusion Cafe"
+      company: "Indo Zestfusion Cafe "
     },
 
 
@@ -30,7 +30,7 @@ export const BRANDING = {
   copyright: {
     prefix: "Copyright ©",
     suffix: "All Rights Reserved by",
-    company: "Indozest Fusion Cafe",
+    company: "Indo Zestfusion Cafe ",
   },
 },
 

@@ -58,22 +58,22 @@ export default function BestOfMonth() {
 
 
   return (
-    <section className="w-full max-w-7xl mx-auto px-2 md:px-0">
-      <div className="bg-[#fdf4ec] rounded-3xl py-1 md:py-10 my-12 relative  select-none">
+    <section className=" max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 ">
+      <div className="bg-[#a77e36] rounded-3xl py-1 md:py-10 my-12 relative overflow-hidden select-none">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="text-left mb-8 sm:mb-10 ">
+        <div className="text-left mb-8 sm:mb-10">
           <div
-            className={`${chicle.className} mt-[-30px] p-4 rounded-2xl w-fit bg-[#fdf4ec] text-3xl sm:text-3xl md:text-4xl text-amber-500 uppercase flex items-center justify-start gap-2`}
+            className={`${chicle.className} text-3xl sm:text-3xl md:text-4xl font-light text-[#ea9244] uppercase flex items-center justify-start gap-2`}
           >
             <FaStar /> Best of the Month
           </div>
           <p className="text-[#d24a0f] text-xs sm:text-sm mt-2">
-          The most ordered foods of the last 30 days.
+            The most ordered dishes of the last 30 days
           </p>
-          <p className="text-gray-600 text-xs sm:text-sm mt-1">
-            Best foods: <span className="font-semibold"></span>
-          </p>
+          {/* <p className="text-gray-600 text-xs sm:text-sm mt-1">
+            Fast alle Gerichte mit: <span className="font-semibold">Reis</span>
+          </p> */}
         </div>
 
         {/* Arrows — visible on all devices */}

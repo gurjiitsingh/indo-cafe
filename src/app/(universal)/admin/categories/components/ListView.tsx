@@ -22,9 +22,12 @@ useEffect(() => {
     try {
       const res = await fetch("/api/categories", { cache: "no-store" });
       const data = await res.json();
-      setCategoryData(data);
+
+      // Ensure we ALWAYS set an array
+      setCategoryData(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch categories:", error);
+      setCategoryData([]); // Fallback to safe empty array
     }
   }
 
@@ -56,6 +59,7 @@ useEffect(() => {
               <TableHead className="text-sm text-gray-700 dark:text-gray-300">
                 Description
               </TableHead>
+                <TableHead>Tax</TableHead>
               <TableHead className="hidden md:table-cell text-sm text-gray-700 dark:text-gray-300">
                 Action
               </TableHead>

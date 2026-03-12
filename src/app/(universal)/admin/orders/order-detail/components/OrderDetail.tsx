@@ -9,10 +9,17 @@ import { searchAddressByAddressId } from "@/app/(universal)/action/address/dbOpe
 import { useSearchParams } from "next/navigation";
 import ListHead from "./ListHead";
 import { addressResT } from "@/lib/types/addressType";
-import { orderProductsT } from "@/lib/types/orderType";
+import { OrderProductT } from "@/lib/types/orderType";
 import { orderMasterDataT } from "@/lib/types/orderMasterType";
 import { formatCurrencyNumber } from '@/utils/formatCurrency';
 import { UseSiteContext } from "@/SiteContext/SiteContext";
+  import { Timestamp } from "firebase/firestore";
+import { formatFirestoreDateToIST } from "@/utils/date";
+import { formatDateTimeStamp } from "@/utils/formatDateTimestamp";
+
+export type orderMasterDataSafeT = Omit<orderMasterDataT, "createdAt"> & {
+  createdAt: string;
+};
 
 const OrderDetail = () => {
   const searchParams = useSearchParams();
@@ -23,9 +30,10 @@ const OrderDetail = () => {
   // );
   const addressId = searchParams.get("addressId") as string;
   const masterOrderId = searchParams.get("masterId") as string;
-  const [orderProducts, setOrderProducts] = useState<orderProductsT[]>([]);
+  const [orderProducts, setOrderProducts] = useState<OrderProductT[]>([]);
   const [customerAddress, setCustomerAddress] = useState<addressResT>();
-  const [orderMasterData, setOrderMasterData] = useState<orderMasterDataT | null>(null);
+  const [orderMasterData, setOrderMasterData] =
+  useState<orderMasterDataSafeT | null>(null);
 
   const { settings } = UseSiteContext();
 
@@ -33,70 +41,113 @@ const OrderDetail = () => {
 
   useEffect(() => {
     async function getOrderProducts() {
-      // console.log("maserer id-----------", masterOrderId);
+    
       const orderProductList = await fetchOrderProductsByOrderMasterId(
         masterOrderId
       );
-      const addressRes = await searchAddressByAddressId(addressId);
+     
+
+let addressRes;
+
+
+
+if (addressId === "POS_ORDER" || addressId === "" ||  addressId === null  || addressId === " ") {
+  addressRes = {
+    id: "POS_ORDER",
+    email: "pos@local",
+    firstName: "Walk-in",
+    lastName: "Customer",
+    userId: "POS",
+    mobNo: "-",
+    addressLine1: "POS Counter",
+    addressLine2: "-",
+    city: "-",
+    state: "-",
+    zipCode: "-"
+  };
+} else {
+   addressRes = await searchAddressByAddressId(addressId);
+ }
+
+
+
       // console.log("orderProductList ---------", orderProductList);
 
       setOrderProducts(orderProductList);
       setCustomerAddress(addressRes);
 
       const orderMaster = await fetchOrderMasterById(masterOrderId);
+      console.log("orderMaster--------------", orderMaster)
       setOrderMasterData(orderMaster);
      
     }
     getOrderProducts();
   }, []);
 
+
+
   useEffect(() => {
     // console.log("addre ins use efferxt-----", customerAddress);
   }, [customerAddress]);
-  const endTotalG = orderMasterData?.endTotalG;
-  //const endTotalGS = endTotalG?.toFixed(2).toString().replace (/\./g, ",");
-  
-  const endTotalGS = formatCurrencyNumber(
-    Number(endTotalG?.toFixed(2)) ?? 0,
-    (settings.currency || 'EUR') as string,
-    (settings.locale || 'de-DE') as string
+  const subTotal = orderMasterData?.subTotal;
+   
+    
+  const totalTax = formatCurrencyNumber(
+    Number(orderMasterData?.taxTotal ?? 0),
+    (settings.currency ) as string,
+    (settings.locale ) as string
   );
 
-
-
-  const itemTotal = orderMasterData?.itemTotal;
-  //const itemTotalS = itemTotal?.toFixed(2).toString().replace (/\./g, ",");
-  const itemTotalS = formatCurrencyNumber(
-    Number(itemTotal?.toFixed(2)) ?? 0,
-    (settings.currency || 'EUR') as string,
-    (settings.locale || 'de-DE') as string
+  const grandTotal = formatCurrencyNumber(
+    Number(orderMasterData?.grandTotal ?? 0),
+    (settings.currency ) as string,
+    (settings.locale ) as string
   );
 
-    const deliveryCost = formatCurrencyNumber(
-    Number(orderMasterData?.deliveryCost) ?? 0,
-    (settings.currency || 'EUR') as string,
-    (settings.locale || 'de-DE') as string
+      const itemTotal = formatCurrencyNumber(
+    Number(orderMasterData?.itemTotal ?? 0),
+    (settings.currency ) as string,
+    (settings.locale ) as string
+  );
+    const subTotalS = formatCurrencyNumber(
+    Number(subTotal?.toFixed(2)) ?? 0,
+    (settings.currency ) as string,
+    (settings.locale ) as string
+  );
+
+    const deliveryFee = formatCurrencyNumber(
+    Number(orderMasterData?.deliveryFee) ?? 0,
+    (settings.currency ) as string,
+    (settings.locale ) as string
   );
 
 
     const calculatedPickUpDiscount = formatCurrencyNumber(
-    Number(orderMasterData?.calculatedPickUpDiscountL) ?? 0,
-    (settings.currency || 'EUR') as string,
-    (settings.locale || 'de-DE') as string
+    Number(orderMasterData?.pickUpDiscount) ?? 0,
+    (settings.currency ) as string,
+    (settings.locale ) as string
   );
-    const flatDiscount = formatCurrencyNumber(
-    Number(orderMasterData?.flatDiscount) ?? 0,
-    (settings.currency || 'EUR') as string,
-    (settings.locale || 'de-DE') as string
-  );
-
-      const calCouponDiscount = formatCurrencyNumber(
-    Number(orderMasterData?.calCouponDiscount) ?? 0,
-    (settings.currency || 'EUR') as string,
-    (settings.locale || 'de-DE') as string
+    const couponFlat = formatCurrencyNumber(
+    Number(orderMasterData?.couponFlat) ?? 0,
+    (settings.currency ) as string,
+    (settings.locale ) as string
   );
 
-  
+      const calcouponPercent = formatCurrencyNumber(
+    Number(orderMasterData?.couponPercent) ?? 0,
+    (settings.currency ) as string,
+    (settings.locale ) as string
+  );
+
+
+
+
+
+ const dateTime = formatDateTimeStamp(
+    orderMasterData?.createdAt as string,
+    String(settings.locale) || process.env.NEXT_PUBLIC_DEFAULT_LOCALE
+  ) 
+
 
   return (
     <div className="flex flex-col gap-4 bg-white px-3 flex-1 mb-12">
@@ -113,19 +164,22 @@ const OrderDetail = () => {
           </div>
           <div className="flex gap-2">
             <div className="font-semibold">Date:</div>{" "}
-            <div className="">{orderMasterData?.time}</div>
+            <div className="">
+              {/* {orderMasterData?.time} */}
+              {dateTime}
+              </div>
           </div>
           <div className="flex gap-2">
             <div className="font-semibold">Status:</div>{" "}
-            <div className="">{orderMasterData?.status}</div>
+            <div className="">{orderMasterData?.orderStatus}</div>
           </div>
 
 
-          <div className="flex gap-2">
-            <div className="font-semibold">Discount total:</div>{" "}
-            <div className="">{orderMasterData?.totalDiscountG}{" "}%</div>
+         
+ <div className="flex gap-2">
+            <div className="font-semibold">Total Payable:</div>{" "}
+            <div className="">{grandTotal}</div>
           </div>
-
          
         </div>
 
@@ -137,13 +191,13 @@ const OrderDetail = () => {
 
           <div className="flex gap-2">
             <div className="font-semibold">Item total:</div>{" "}
-            <div className="">{itemTotalS}</div>
+            <div className="">{itemTotal}</div>
           </div>
 
           
           <div className="flex gap-2">
             <div className="font-semibold">Dilevery cost:</div>{" "}
-            <div className="">{deliveryCost}</div>
+            <div className="">{deliveryFee}</div>
           </div>
 
           <div className="flex gap-2">
@@ -155,19 +209,25 @@ const OrderDetail = () => {
 
           <div className="flex gap-2">
             <div className="font-semibold">Coupon Discount Flat:</div>{" "}
-            <div className=""> {flatDiscount}</div>
+            <div className=""> {couponFlat}</div>
           </div>
 
           <div className="flex gap-2">
             <div className="font-semibold">Coupon Discount percent:</div>{" "}
-            <div className=""> {calCouponDiscount}</div>
+            <div className=""> {calcouponPercent}</div>
           </div>
           <div className="flex gap-2">
             <div className="font-semibold">Subtotal:</div>{" "}
-            <div className="">{endTotalGS}</div>
+            <div className="">{subTotalS}</div>
           </div>
-
-
+   <div className="flex gap-2">
+            <div className="font-semibold">Tax:</div>{" "}
+            <div className="">{totalTax}</div>
+          </div>
+ <div className="flex gap-2">
+            <div className="font-semibold">Grand Total:</div>{" "}
+            <div className="">{grandTotal}</div>
+          </div>
 
         </div>
 

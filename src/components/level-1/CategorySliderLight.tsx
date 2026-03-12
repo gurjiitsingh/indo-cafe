@@ -5,7 +5,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { UseSiteContext } from "@/SiteContext/SiteContext";
 import { Lato, Poppins } from "next/font/google";
 
-// ✅ Category type definition
+//  Category type definition
 export type CategoryType = {
   id: string;
   name: string;
@@ -40,7 +40,7 @@ export default function CategorySliderLight() {
     settings,
   } = UseSiteContext();
 
-  // ✅ Handle displayCategory selection
+  //  Handle displayCategory selection
 
 
 useEffect(() => {
@@ -51,7 +51,7 @@ useEffect(() => {
   }
 }, [settings, productCategoryIdG]);
 
-  // ✅ Fetch categories
+  //  Fetch categories
 useEffect(() => {
   const fetchData = async () => {
     try {
@@ -81,7 +81,7 @@ useEffect(() => {
 }, []);
 
 
-  // ✅ Scroll handler
+  //  Scroll handler
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const { scrollLeft, clientWidth } = scrollRef.current;
@@ -95,7 +95,7 @@ useEffect(() => {
   };
 
   return (
-    <div className="relative max-w-6xl mx-auto  px-0 md:px-0 my-6">
+    <div id="order_now" className="scroll-mt-24 relative max-w-7xl mx-auto  px-4 sm:px-6 lg:px-12 my-6">
       {/* Arrows */}
       <button
         onClick={() => scroll("left")}

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import "@/custom/globals.css";
+import "@/app/globals.css";
 import SiteLayout from "@/components/SiteLayout";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "Indozest Fusion Cafe, Braunschweig-Broitzem",
-  description: "Indozest Fusion Cafe, Indian food",
+  title: "Masala Taste of India, Braunschweig-Broitzem",
+  description: "Masala Taste of India, Indian food",
   other: {
     google: "notranslate",
   },
@@ -20,7 +20,7 @@ export default function RootLayout({
         <div translate="no">
           <SiteLayout>{children}</SiteLayout>
 
-          {/* ✅ Toast Notification System */}
+          {/*  Toast Notification System */}
           <Toaster
             position="top-center"
             containerStyle={{ top: "30%" }}
